@@ -3,7 +3,7 @@ import { Button } from './ui/button';
 import { Menu, X, User } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import logo from 'figma:asset/5617957f48c55254a851db007d0091c8ad212892.png';
+import logo from '../../assets/5617957f48c55254a851db007d0091c8ad212892.png';
 import {
   DropdownMenu,
   DropdownMenuContent,

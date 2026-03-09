@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import { useState } from "react";
 import { LayoutDashboard, BookOpen, Users, User, LogOut, Menu, X } from "lucide-react";
-import logo from "figma:asset/5617957f48c55254a851db007d0091c8ad212892.png";
+import logo from "../../assets/5617957f48c55254a851db007d0091c8ad212892.png";
 
 export default function StaffLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

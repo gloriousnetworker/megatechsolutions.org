@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router";
 import { Menu, X, ChevronDown, LogIn, UserPlus } from "lucide-react";
 import { useState } from "react";
-import logo from "figma:asset/5617957f48c55254a851db007d0091c8ad212892.png";
+import logo from "../../assets/5617957f48c55254a851db007d0091c8ad212892.png";
 
 export default function MainLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

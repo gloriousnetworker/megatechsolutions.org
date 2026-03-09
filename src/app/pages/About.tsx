@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Target, Eye, Award, Users, TrendingUp, Heart } from 'lucide-react';
-import ceoImage from 'figma:asset/3dacabed15e19364a81094f974943ed0b55c95db.png';
-import managerImage from 'figma:asset/20e03f663b76693d871ac90b0eddfb514696d609.png';
-import legalAdvisorImage from 'figma:asset/4589a0cf374a7f51aad39b9046c09defb8ccc362.png';
+import ceoImage from '../../assets/3dacabed15e19364a81094f974943ed0b55c95db.png';
+import managerImage from '../../assets/20e03f663b76693d871ac90b0eddfb514696d609.png';
+import legalAdvisorImage from '../../assets/4589a0cf374a7f51aad39b9046c09defb8ccc362.png';
 
 export default function About() {
   return (

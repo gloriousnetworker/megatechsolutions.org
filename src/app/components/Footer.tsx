@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
-import logo from 'figma:asset/5617957f48c55254a851db007d0091c8ad212892.png';
+import logo from '../../assets/5617957f48c55254a851db007d0091c8ad212892.png';
 
 export function Footer() {
   return (

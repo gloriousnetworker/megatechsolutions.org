@@ -5,7 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import logo from 'figma:asset/5617957f48c55254a851db007d0091c8ad212892.png';
+import logo from '../../assets/5617957f48c55254a851db007d0091c8ad212892.png';
 import { toast } from 'sonner';
 
 export default function Register() {
