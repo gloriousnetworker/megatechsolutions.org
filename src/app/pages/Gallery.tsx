@@ -1,0 +1,77 @@
+import { useState } from 'react';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { mockGallery } from '../data/mockData';
+
+export default function Gallery() {
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+
+  const categories = [
+    { value: 'all', label: 'All' },
+    { value: 'trainings', label: 'Trainings' },
+    { value: 'workshops', label: 'Workshops' },
+    { value: 'events', label: 'Events' },
+    { value: 'graduation', label: 'Graduation' },
+    { value: 'conferences', label: 'Conferences' }
+  ];
+
+  const filteredGallery = activeCategory === 'all' 
+    ? mockGallery 
+    : mockGallery.filter(item => item.category === activeCategory);
+
+  return (
+    <div>
+      {/* Hero */}
+      <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Gallery</h1>
+          <p className="text-xl text-blue-50 max-w-3xl">
+            Explore moments from our training sessions, workshops, events, and celebrations
+          </p>
+        </div>
+      </section>
+
+      {/* Gallery */}
+      <section className="py-12">
+        <div className="container mx-auto px-4">
+          <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
+            <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full mb-8">
+              {categories.map(cat => (
+                <TabsTrigger key={cat.value} value={cat.value}>
+                  {cat.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            <TabsContent value={activeCategory}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredGallery.map((item) => (
+                  <div key={item.id} className="group relative overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <img
+                      src={item.url}
+                      alt={item.title}
+                      className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4">
+                      <div className="text-white">
+                        <h3 className="font-semibold mb-1">{item.title}</h3>
+                        <p className="text-sm text-gray-200">{new Date(item.date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {filteredGallery.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 text-lg">No items in this category yet</p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
+      </section>
+    </div>
+  );
+}
