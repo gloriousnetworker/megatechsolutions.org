@@ -85,7 +85,11 @@ export default function Contact() {
                     <div>
                       <h3 className="font-semibold mb-1">Email Address</h3>
                       <p className="text-sm text-gray-600">
-                        Megatechsolution2023@gmail.com
+                        Megatechsolution
+                        <br />
+                        2023@gmail.com
+                        <br />
+                        
                       </p>
                     </div>
                   </div>

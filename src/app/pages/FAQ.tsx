@@ -17,7 +17,7 @@ export default function FAQ() {
         },
         {
           q: 'How long have you been operating?',
-          a: 'We were founded in 2015 and have been providing quality tech education for over 10 years. We\'ve successfully trained over 5,000 students who have gone on to work at leading tech companies.'
+          a: 'We were founded in 2023 and have been providing quality tech education for over 3 years. We\'ve successfully trained over 5,000 students who have gone on to work at leading tech companies.'
         },
         {
           q: 'Are your certificates recognized?',
