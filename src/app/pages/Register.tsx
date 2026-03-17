@@ -32,15 +32,17 @@ export default function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
       <div className="w-full max-w-lg">
+        {/* Logo & Heading */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-4">
-            <img src={logo} alt="MEGA-TECH" className="size-10" />
+            <img src={logo} alt="MEGA-TECH" className="h-10 w-10 object-contain" />
             <span className="font-bold text-2xl">MEGA-TECH</span>
           </Link>
           <h1 className="text-3xl font-bold">Create Your Account</h1>
           <p className="text-gray-600 mt-2">Start your learning journey today</p>
         </div>
 
+        {/* Registration Card */}
         <Card>
           <CardHeader>
             <CardTitle>Student Registration</CardTitle>
@@ -48,7 +50,8 @@ export default function Register() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+              {/* Name & Email */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="fullName">Full Name *</Label>
                   <Input
@@ -72,6 +75,7 @@ export default function Register() {
                 </div>
               </div>
 
+              {/* Phone */}
               <div>
                 <Label htmlFor="phone">Phone Number *</Label>
                 <Input
@@ -84,9 +88,13 @@ export default function Register() {
                 />
               </div>
 
+              {/* Course Select */}
               <div>
                 <Label htmlFor="course">Select Course *</Label>
-                <Select value={formData.course} onValueChange={(v) => setFormData({ ...formData, course: v })}>
+                <Select
+                  value={formData.course}
+                  onValueChange={(v) => setFormData({ ...formData, course: v })}
+                >
                   <SelectTrigger id="course">
                     <SelectValue placeholder="Choose a course" />
                   </SelectTrigger>
@@ -101,7 +109,8 @@ export default function Register() {
                 </Select>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              {/* Password & Confirm */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="password">Password *</Label>
                   <Input
@@ -126,9 +135,10 @@ export default function Register() {
                 </div>
               </div>
 
+            {/* Terms & Privacy */}
               <div className="flex items-start gap-2">
-                <input type="checkbox" id="terms" className="mt-1" required />
-                <Label htmlFor="terms" className="text-sm font-normal">
+                <input type="checkbox" id="terms" className="rounded mt-1" required />
+                <label htmlFor="terms" className="text-sm font-normal flex flex-wrap gap-1">
                   I agree to the{' '}
                   <Link to="/terms" className="text-blue-600 hover:underline">
                     Terms and Conditions
@@ -137,15 +147,18 @@ export default function Register() {
                   <Link to="/privacy" className="text-blue-600 hover:underline">
                     Privacy Policy
                   </Link>
-                </Label>
+                </label>
               </div>
 
+              {/* Submit Button */}
               <Button type="submit" className="w-full" size="lg">
                 Create Account
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex-col gap-2">
+
+          {/* Footer */}
+          <CardFooter className="flex flex-col sm:flex-row sm:justify-between gap-2 text-center sm:text-left">
             <div className="text-sm text-gray-600">
               Already have an account?{' '}
               <Link to="/login" className="text-blue-600 hover:underline font-medium">

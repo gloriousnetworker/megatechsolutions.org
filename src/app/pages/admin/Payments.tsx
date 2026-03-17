@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { api } from '../../utils/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
@@ -12,23 +11,20 @@ export default function AdminPayments() {
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchPayments();
-  }, [accessToken]);
+  // TEMPORARY: mock payments data
+  const mockPayments = [
+    { id: 1, userId: 'u123456789', amount: 200, status: 'completed', created_at: '2026-03-01', description: 'Course Payment', courseTitle: 'React Basics' },
+    { id: 2, userId: 'u987654321', amount: 150, status: 'pending', created_at: '2026-03-10', description: 'Course Payment', courseTitle: 'Next.js Advanced' },
+    { id: 3, userId: 'u456789123', amount: 100, status: 'failed', created_at: '2026-03-12', description: 'Course Payment', courseTitle: 'Tailwind CSS' },
+  ];
 
-  const fetchPayments = async () => {
-    if (!accessToken) return;
-    
-    try {
-      const data = await api.getAllPayments(accessToken);
-      setPayments(data.payments || []);
-    } catch (error) {
-      console.error('Error fetching payments:', error);
-      toast.error('Failed to load payments');
-    } finally {
+  useEffect(() => {
+    // Simulate API fetch
+    setTimeout(() => {
+      setPayments(mockPayments);
       setLoading(false);
-    }
-  };
+    }, 500); // simulate network delay
+  }, []);
 
   const getStatusBadge = (status: string) => {
     const config: any = {

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { api } from '../../utils/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
@@ -24,38 +23,34 @@ export default function AdminStaff() {
     position: '',
   });
 
-  useEffect(() => {
-    fetchStaff();
-  }, [accessToken]);
+  // TEMPORARY: mock staff data
+  const mockStaff = [
+    { id: 1, name: 'Boluwatife Ade', email: 'boluwatife@example.com', position: 'Senior Instructor', created_at: '2026-03-01' },
+    { id: 2, name: 'Chidera Okafor', email: 'chidera@example.com', position: 'Instructor', created_at: '2026-02-15' },
+    { id: 3, name: 'Tobi Smith', email: 'tobi@example.com', position: 'Instructor', created_at: '2026-01-20' },
+  ];
 
-  const fetchStaff = async () => {
-    if (!accessToken) return;
-    
-    try {
-      const data = await api.getStaff(accessToken);
-      setStaff(data.staff || []);
-    } catch (error) {
-      console.error('Error fetching staff:', error);
-      toast.error('Failed to load staff');
-    } finally {
+  useEffect(() => {
+    // Simulate fetch
+    setTimeout(() => {
+      setStaff(mockStaff);
       setLoading(false);
-    }
-  };
+    }, 500); // simulate network delay
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accessToken) return;
 
-    try {
-      await api.createStaff(formData, accessToken);
-      toast.success('Staff member added successfully!');
-      setDialogOpen(false);
-      setFormData({ name: '', email: '', password: '', phone: '', position: '' });
-      fetchStaff();
-    } catch (error) {
-      console.error('Error creating staff:', error);
-      toast.error('Failed to add staff member');
-    }
+    // TEMPORARY: add staff locally
+    const newStaff = {
+      id: staff.length + 1,
+      ...formData,
+      created_at: new Date().toISOString(),
+    };
+    setStaff([...staff, newStaff]);
+    setFormData({ name: '', email: '', password: '', phone: '', position: '' });
+    setDialogOpen(false);
+    toast.success('Staff member added successfully!');
   };
 
   if (loading) {
@@ -67,162 +62,160 @@ export default function AdminStaff() {
   }
 
   return (
-  <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
-    
-    {/* Header */}
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">Staff Management</h1>
-        <p className="text-sm sm:text-base text-gray-600 mt-1">
-          Manage teaching staff and instructors
-        </p>
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold">Staff Management</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">
+            Manage teaching staff and instructors
+          </p>
+        </div>
+
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="w-full sm:w-auto">
+              <Plus className="size-4 mr-2" />
+              Add Staff
+            </Button>
+          </DialogTrigger>
+
+          {/* Responsive Dialog */}
+          <DialogContent className="w-[95vw] sm:max-w-lg rounded-xl">
+            <DialogHeader>
+              <DialogTitle>Add New Staff Member</DialogTitle>
+              <DialogDescription>
+                Create a new staff account with instructor privileges
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="position">Position</Label>
+                <Input
+                  id="position"
+                  placeholder="e.g., Senior Instructor"
+                  value={formData.position}
+                  onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                />
+              </div>
+
+              <Button type="submit" className="w-full">
+                Add Staff Member
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogTrigger asChild>
-          <Button className="w-full sm:w-auto">
-            <Plus className="size-4 mr-2" />
-            Add Staff
-          </Button>
-        </DialogTrigger>
+      {/* Staff Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg sm:text-xl">
+            All Staff Members ({staff.length})
+          </CardTitle>
+        </CardHeader>
 
-        {/* Responsive Dialog */}
-        <DialogContent className="w-[95vw] sm:max-w-lg rounded-xl">
-          <DialogHeader>
-            <DialogTitle>Add New Staff Member</DialogTitle>
-            <DialogDescription>
-              Create a new staff account with instructor privileges
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
+        <CardContent>
+          {staff.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="size-14 sm:size-16 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No Staff Yet</h3>
+              <p className="text-sm sm:text-base text-gray-600">
+                Add your first staff member to get started.
+              </p>
             </div>
-
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="position">Position</Label>
-              <Input
-                id="position"
-                placeholder="e.g., Senior Instructor"
-                value={formData.position}
-                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-              />
-            </div>
-
-            <Button type="submit" className="w-full">
-              Add Staff Member
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </div>
-
-    {/* Staff Table */}
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg sm:text-xl">
-          All Staff Members ({staff.length})
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent>
-        {staff.length === 0 ? (
-          <div className="text-center py-12">
-            <Users className="size-14 sm:size-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Staff Yet</h3>
-            <p className="text-sm sm:text-base text-gray-600">
-              Add your first staff member to get started.
-            </p>
-          </div>
-        ) : (
-          
-          /* Responsive Table Wrapper */
-          <div className="w-full overflow-x-auto">
-            <Table className="min-w-[700px]">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Position</TableHead>
-                  <TableHead>Joined</TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {staff.map((member: any) => (
-                  <TableRow key={member.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3 min-w-[180px]">
-                        <Avatar className="h-9 w-9">
-                          <AvatarFallback>
-                            {member.name?.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium whitespace-nowrap">
-                          {member.name}
-                        </span>
-                      </div>
-                    </TableCell>
-
-                    <TableCell className="whitespace-nowrap">
-                      {member.email}
-                    </TableCell>
-
-                    <TableCell className="whitespace-nowrap">
-                      {member.position || 'Instructor'}
-                    </TableCell>
-
-                    <TableCell className="whitespace-nowrap">
-                      {member.created_at
-                        ? new Date(member.created_at).toLocaleDateString()
-                        : 'N/A'}
-                    </TableCell>
+          ) : (
+            <div className="w-full overflow-x-auto">
+              <Table className="min-w-[700px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Position</TableHead>
+                    <TableHead>Joined</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  </div>
-);
+                </TableHeader>
+
+                <TableBody>
+                  {staff.map((member: any) => (
+                    <TableRow key={member.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3 min-w-[180px]">
+                          <Avatar className="h-9 w-9">
+                            <AvatarFallback>
+                              {member.name?.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium whitespace-nowrap">
+                            {member.name}
+                          </span>
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="whitespace-nowrap">
+                        {member.email}
+                      </TableCell>
+
+                      <TableCell className="whitespace-nowrap">
+                        {member.position || 'Instructor'}
+                      </TableCell>
+
+                      <TableCell className="whitespace-nowrap">
+                        {member.created_at
+                          ? new Date(member.created_at).toLocaleDateString()
+                          : 'N/A'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
