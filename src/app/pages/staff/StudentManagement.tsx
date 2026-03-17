@@ -45,34 +45,45 @@ export default function StaffStudentManagement() {
     );
   }
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Student Management</h1>
-        <p className="text-gray-600 mt-2">View and manage your students</p>
-      </div>
+ return (
+  <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+    
+    {/* Header */}
+    <div>
+      <h1 className="text-2xl sm:text-3xl font-bold">Student Management</h1>
+      <p className="text-sm sm:text-base text-gray-600 mt-1">
+        View and manage your students
+      </p>
+    </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 size-4 text-gray-400" />
-              <Input
-                placeholder="Search students..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          
+          {/* Search */}
+          <div className="relative w-full sm:max-w-sm">
+            <Search className="absolute left-3 top-3 size-4 text-gray-400" />
+            <Input
+              placeholder="Search students..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
-        </CardHeader>
-        <CardContent>
-          {filteredStudents.length === 0 ? (
-            <div className="text-center py-12 text-gray-600">
-              No students found
-            </div>
-          ) : (
-            <Table>
+
+        </div>
+      </CardHeader>
+
+      <CardContent>
+        {filteredStudents.length === 0 ? (
+          <div className="text-center py-12 text-gray-600">
+            No students found
+          </div>
+        ) : (
+          
+          /* Responsive Table Wrapper */
+          <div className="w-full overflow-x-auto">
+            <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Student</TableHead>
@@ -81,31 +92,44 @@ export default function StaffStudentManagement() {
                   <TableHead>Joined</TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 {filteredStudents.map((student: any) => (
                   <TableRow key={student.id}>
                     <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar>
+                      <div className="flex items-center gap-3 min-w-[180px]">
+                        <Avatar className="h-9 w-9">
                           <AvatarFallback>
                             {student.name?.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="font-medium">{student.name}</span>
+                        <span className="font-medium whitespace-nowrap">
+                          {student.name}
+                        </span>
                       </div>
                     </TableCell>
-                    <TableCell>{student.email}</TableCell>
-                    <TableCell>{student.phone || 'N/A'}</TableCell>
-                    <TableCell>
-                      {student.created_at ? new Date(student.created_at).toLocaleDateString() : 'N/A'}
+
+                    <TableCell className="whitespace-nowrap">
+                      {student.email}
+                    </TableCell>
+
+                    <TableCell className="whitespace-nowrap">
+                      {student.phone || 'N/A'}
+                    </TableCell>
+
+                    <TableCell className="whitespace-nowrap">
+                      {student.created_at
+                        ? new Date(student.created_at).toLocaleDateString()
+                        : 'N/A'}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  </div>
+);
 }
