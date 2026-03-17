@@ -1,6 +1,4 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { api } from '../../utils/api';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
@@ -11,10 +9,37 @@ import { Badge } from '../../components/ui/badge';
 import { FileText, Upload, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
+// --- MOCK DATA ---
+const mockAssignments = [
+  {
+    id: 1,
+    title: 'Web Development Assignment 1',
+    submitted_at: '2026-03-01',
+    status: 'submitted',
+    description: 'Build a responsive landing page.',
+    fileUrl: '',
+  },
+  {
+    id: 2,
+    title: 'Data Science Assignment 1',
+    submitted_at: '2026-03-05',
+    status: 'approved',
+    description: 'Perform EDA on the provided dataset.',
+    fileUrl: '',
+  },
+  {
+    id: 3,
+    title: 'UI/UX Assignment',
+    submitted_at: '2026-03-10',
+    status: 'rejected',
+    description: 'Redesign the login page for better UX.',
+    fileUrl: '',
+  },
+];
+
 export default function StudentAssignments() {
-  const { accessToken } = useAuth();
-  const [assignments, setAssignments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  // use mock data instead of API
+  const [assignments] = useState(mockAssignments);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -23,38 +48,12 @@ export default function StudentAssignments() {
     fileUrl: '',
   });
 
-  useEffect(() => {
-    fetchAssignments();
-  }, [accessToken]);
-
-  const fetchAssignments = async () => {
-    if (!accessToken) return;
-    
-    try {
-      const data = await api.getMyAssignments(accessToken);
-      setAssignments(data.assignments || []);
-    } catch (error) {
-      console.error('Error fetching assignments:', error);
-      toast.error('Failed to load assignments');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accessToken) return;
-
-    try {
-      await api.submitAssignment(formData, accessToken);
-      toast.success('Assignment submitted successfully!');
-      setDialogOpen(false);
-      setFormData({ title: '', courseId: '', description: '', fileUrl: '' });
-      fetchAssignments();
-    } catch (error) {
-      console.error('Error submitting assignment:', error);
-      toast.error('Failed to submit assignment');
-    }
+    // Just simulate submission
+    toast.success('Assignment submitted (mock)!');
+    setDialogOpen(false);
+    setFormData({ title: '', courseId: '', description: '', fileUrl: '' });
   };
 
   const getStatusBadge = (status: string) => {
@@ -75,34 +74,25 @@ export default function StudentAssignments() {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">Assignments</h1>
           <p className="text-gray-600 mt-2">Submit and track your assignments</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Upload className="size-4 mr-2" />
+            <Button className="flex items-center gap-2 px-4 py-2" size="sm">
+              <Upload className="size-4" />
               Submit Assignment
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Submit Assignment</DialogTitle>
-              <DialogDescription>
-                Upload your completed assignment for review
-              </DialogDescription>
+              <DialogDescription>Upload your completed assignment for review</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -147,6 +137,7 @@ export default function StudentAssignments() {
         </Dialog>
       </div>
 
+      {/* Assignments List */}
       {assignments.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center py-12">
@@ -159,16 +150,14 @@ export default function StudentAssignments() {
         <div className="grid gap-4">
           {assignments.map((assignment: any) => (
             <Card key={assignment.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>{assignment.title}</CardTitle>
-                    <CardDescription>
-                      Submitted on {new Date(assignment.submitted_at).toLocaleDateString()}
-                    </CardDescription>
-                  </div>
-                  {getStatusBadge(assignment.status)}
+              <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                <div>
+                  <CardTitle>{assignment.title}</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Submitted on {new Date(assignment.submitted_at).toLocaleDateString()}
+                  </CardDescription>
                 </div>
+                {getStatusBadge(assignment.status)}
               </CardHeader>
               <CardContent>
                 {assignment.description && (
