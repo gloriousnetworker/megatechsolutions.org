@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { api } from '../../utils/api';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { CreditCard, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
+
+// MOCK DATA
+const mockPayments = [
+  { id: 1, created_at: '2026-03-10T12:00:00Z', description: 'Web Development Bootcamp', courseTitle: 'Web Dev Bootcamp', amount: 250, status: 'completed' },
+  { id: 2, created_at: '2026-03-12T12:00:00Z', description: 'Data Science & Analytics', courseTitle: 'Data Science', amount: 180, status: 'pending' },
+  { id: 3, created_at: '2026-03-15T12:00:00Z', description: 'React & TypeScript Mastery', courseTitle: 'React & TS', amount: 200, status: 'failed' },
+];
 
 export default function StudentPayments() {
   const { accessToken } = useAuth();
@@ -13,22 +19,10 @@ export default function StudentPayments() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchPayments();
+    // USE MOCK DATA INSTEAD OF API
+    setPayments(mockPayments);
+    setLoading(false);
   }, [accessToken]);
-
-  const fetchPayments = async () => {
-    if (!accessToken) return;
-    
-    try {
-      const data = await api.getMyPayments(accessToken);
-      setPayments(data.payments || []);
-    } catch (error) {
-      console.error('Error fetching payments:', error);
-      toast.error('Failed to load payments');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getStatusBadge = (status: string) => {
     const config: any = {
@@ -102,7 +96,7 @@ export default function StudentPayments() {
           <CardHeader>
             <CardTitle>Transaction History</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

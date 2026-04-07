@@ -400,43 +400,43 @@ export const mockBlogPosts: BlogPost[] = [
 export const mockGallery: GalleryItem[] = [
   {
     id: '1',
-    title: 'Web Development Workshop 2025',
+    title: 'Entrance into MegaTech HQ',
     category: 'workshops',
     type: 'image',
-    url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=600&fit=crop',
-    date: '2025-12-15'
+    url: 'src/assets/entrance.jpeg',
+    date: '2026-07-04'
   },
   {
     id: '2',
-    title: 'Graduation Ceremony December 2025',
-    category: 'graduation',
+    title: 'Front-Desk',
+    category: 'trainings',
     type: 'image',
-    url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=600&fit=crop',
-    date: '2025-12-20'
+    url: '/src/assets/frontdesk.jpeg',
+    date: '2026-07-04'
   },
   {
     id: '3',
-    title: 'Tech Conference 2025',
+    title: 'Management Office',
     category: 'conferences',
     type: 'image',
-    url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop',
-    date: '2025-11-10'
+    url: '/src/assets/mng office.jpeg',
+    date: '2026-07-04'
   },
   {
     id: '4',
-    title: 'Machine Learning Training',
+    title: 'Computer Room',
     category: 'trainings',
     type: 'image',
-    url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=600&fit=crop',
-    date: '2025-10-05'
+    url: '/src/assets/cmp room.jpeg',
+    date: '2026-07-04'
   },
   {
     id: '5',
-    title: 'Student Hackathon Event',
-    category: 'events',
+    title: 'Confrence Room',
+    category: 'conferences',
     type: 'image',
-    url: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&h=600&fit=crop',
-    date: '2025-09-22'
+    url: '/src/assets/con room.jpeg',
+    date: '2026-07-04'
   }
 ];
 
