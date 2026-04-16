@@ -5,67 +5,47 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Badge } from '../../components/ui/badge';
-import { FileText, Upload, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Skeleton } from '../../components/ui/skeleton';
+import { useApi } from '../../hooks/useApi';
+import { api } from '../../utils/api';
+import { ErrorState } from '../../components/ErrorState';
+import { FileText, Upload, CheckCircle, Clock, XCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-
-// --- MOCK DATA ---
-const mockAssignments = [
-  {
-    id: 1,
-    title: 'Web Development Assignment 1',
-    submitted_at: '2026-03-01',
-    status: 'submitted',
-    description: 'Build a responsive landing page.',
-    fileUrl: '',
-  },
-  {
-    id: 2,
-    title: 'Data Science Assignment 1',
-    submitted_at: '2026-03-05',
-    status: 'approved',
-    description: 'Perform EDA on the provided dataset.',
-    fileUrl: '',
-  },
-  {
-    id: 3,
-    title: 'UI/UX Assignment',
-    submitted_at: '2026-03-10',
-    status: 'rejected',
-    description: 'Redesign the login page for better UX.',
-    fileUrl: '',
-  },
-];
+import type { Assignment, Enrollment } from '../../types';
 
 export default function StudentAssignments() {
-  // use mock data instead of API
-  const [assignments] = useState(mockAssignments);
+  const { data: assignments, isLoading, error, retry } = useApi<Assignment[]>(() => api.assignments.my());
+  const { data: enrollments } = useApi<Enrollment[]>(() => api.enrollments.my());
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    courseId: '',
-    description: '',
-    fileUrl: '',
-  });
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ title: '', courseId: '', description: '', fileUrl: '' });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Just simulate submission
-    toast.success('Assignment submitted (mock)!');
-    setDialogOpen(false);
-    setFormData({ title: '', courseId: '', description: '', fileUrl: '' });
+    setSubmitting(true);
+    try {
+      await api.assignments.submit(formData);
+      toast.success('Assignment submitted!');
+      setDialogOpen(false);
+      setFormData({ title: '', courseId: '', description: '', fileUrl: '' });
+      retry();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to submit assignment');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: any = {
-      submitted: { variant: 'default', icon: Clock, label: 'Pending Review' },
-      approved: { variant: 'default', icon: CheckCircle, label: 'Approved' },
-      rejected: { variant: 'destructive', icon: XCircle, label: 'Needs Revision' },
+    const variants: Record<string, { variant: 'default' | 'destructive' | 'secondary'; icon: typeof Clock; label: string }> = {
+      pending: { variant: 'secondary', icon: Clock, label: 'Pending' },
+      submitted: { variant: 'default', icon: Clock, label: 'Submitted' },
+      graded: { variant: 'default', icon: CheckCircle, label: 'Graded' },
     };
-
-    const config = variants[status] || variants.submitted;
+    const config = variants[status] || variants.pending;
     const Icon = config.icon;
-
     return (
       <Badge variant={config.variant} className="flex items-center gap-1 w-fit">
         <Icon className="size-3" />
@@ -74,22 +54,31 @@ export default function StudentAssignments() {
     );
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)}
+      </div>
+    );
+  }
+
+  if (error) return <ErrorState message={error} onRetry={retry} />;
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Assignments</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Assignments</h1>
           <p className="text-gray-600 mt-2">Submit and track your assignments</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-2 px-4 py-2" size="sm">
+            <Button className="flex items-center gap-2" size="sm">
               <Upload className="size-4" />
               Submit Assignment
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="w-[95vw] sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Submit Assignment</DialogTitle>
               <DialogDescription>Upload your completed assignment for review</DialogDescription>
@@ -97,48 +86,39 @@ export default function StudentAssignments() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="title">Assignment Title</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                />
+                <Input id="title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required />
               </div>
               <div>
-                <Label htmlFor="courseId">Course ID</Label>
-                <Input
-                  id="courseId"
-                  value={formData.courseId}
-                  onChange={(e) => setFormData({ ...formData, courseId: e.target.value })}
-                  required
-                />
+                <Label htmlFor="courseId">Course</Label>
+                <Select value={formData.courseId} onValueChange={(v) => setFormData({ ...formData, courseId: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a course" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(enrollments || []).map((e) => (
+                      <SelectItem key={e.courseId} value={e.courseId}>{e.course?.title || e.courseId}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={4}
-                />
+                <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} />
               </div>
               <div>
                 <Label htmlFor="fileUrl">File URL</Label>
-                <Input
-                  id="fileUrl"
-                  value={formData.fileUrl}
-                  onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
-                  placeholder="https://..."
-                />
+                <Input id="fileUrl" value={formData.fileUrl} onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })} placeholder="https://..." />
               </div>
-              <Button type="submit" className="w-full">Submit Assignment</Button>
+              <Button type="submit" className="w-full" disabled={submitting}>
+                {submitting ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
+                Submit Assignment
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Assignments List */}
-      {assignments.length === 0 ? (
+      {(assignments || []).length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center py-12">
             <FileText className="size-16 mx-auto text-gray-400 mb-4" />
@@ -148,27 +128,22 @@ export default function StudentAssignments() {
         </Card>
       ) : (
         <div className="grid gap-4">
-          {assignments.map((assignment: any) => (
+          {(assignments || []).map((assignment) => (
             <Card key={assignment.id}>
               <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                 <div>
-                  <CardTitle>{assignment.title}</CardTitle>
-                  <CardDescription className="text-gray-600">
-                    Submitted on {new Date(assignment.submitted_at).toLocaleDateString()}
+                  <CardTitle className="text-base md:text-lg">{assignment.title}</CardTitle>
+                  <CardDescription>
+                    {assignment.course?.title}
+                    {assignment.submittedDate && ` \u00B7 Submitted ${new Date(assignment.submittedDate).toLocaleDateString()}`}
                   </CardDescription>
                 </div>
                 {getStatusBadge(assignment.status)}
               </CardHeader>
               <CardContent>
-                {assignment.description && (
-                  <p className="text-gray-600 mb-4">{assignment.description}</p>
-                )}
-                {assignment.fileUrl && (
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={assignment.fileUrl} target="_blank" rel="noopener noreferrer">
-                      View Submission
-                    </a>
-                  </Button>
+                {assignment.description && <p className="text-gray-600 mb-4 text-sm">{assignment.description}</p>}
+                {assignment.grade !== null && assignment.grade !== undefined && (
+                  <p className="text-sm font-medium">Grade: <span className="text-blue-600">{assignment.grade}%</span></p>
                 )}
               </CardContent>
             </Card>

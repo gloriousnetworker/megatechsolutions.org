@@ -1,38 +1,23 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
+import { Skeleton } from '../../components/ui/skeleton';
+import { useApi } from '../../hooks/useApi';
+import { api } from '../../utils/api';
+import { ErrorState } from '../../components/ErrorState';
 import { CreditCard, CheckCircle, Clock, XCircle } from 'lucide-react';
-import { toast } from 'sonner';
-
-// MOCK DATA
-const mockPayments = [
-  { id: 1, created_at: '2026-03-10T12:00:00Z', description: 'Web Development Bootcamp', courseTitle: 'Web Dev Bootcamp', amount: 250, status: 'completed' },
-  { id: 2, created_at: '2026-03-12T12:00:00Z', description: 'Data Science & Analytics', courseTitle: 'Data Science', amount: 180, status: 'pending' },
-  { id: 3, created_at: '2026-03-15T12:00:00Z', description: 'React & TypeScript Mastery', courseTitle: 'React & TS', amount: 200, status: 'failed' },
-];
+import type { Payment } from '../../types';
 
 export default function StudentPayments() {
-  const { accessToken } = useAuth();
-  const [payments, setPayments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // USE MOCK DATA INSTEAD OF API
-    setPayments(mockPayments);
-    setLoading(false);
-  }, [accessToken]);
+  const { data: payments, isLoading, error, retry } = useApi<Payment[]>(() => api.payments.my());
 
   const getStatusBadge = (status: string) => {
-    const config: any = {
-      completed: { variant: 'default', icon: CheckCircle, label: 'Completed', color: 'text-green-600' },
-      pending: { variant: 'secondary', icon: Clock, label: 'Pending', color: 'text-yellow-600' },
-      failed: { variant: 'destructive', icon: XCircle, label: 'Failed', color: 'text-red-600' },
+    const config: Record<string, { icon: typeof Clock; label: string; color: string }> = {
+      confirmed: { icon: CheckCircle, label: 'Confirmed', color: 'text-green-600' },
+      pending: { icon: Clock, label: 'Pending', color: 'text-yellow-600' },
+      failed: { icon: XCircle, label: 'Failed', color: 'text-red-600' },
     };
-
     const { icon: Icon, label, color } = config[status] || config.pending;
-
     return (
       <Badge variant="outline" className="flex items-center gap-1 w-fit">
         <Icon className={`size-3 ${color}`} />
@@ -41,49 +26,51 @@ export default function StudentPayments() {
     );
   };
 
-  const totalPaid = payments
-    .filter(p => p.status === 'completed')
-    .reduce((sum, p) => sum + (p.amount || 0), 0);
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+        </div>
+        <Skeleton className="h-64 rounded-xl" />
       </div>
     );
   }
 
+  if (error) return <ErrorState message={error} onRetry={retry} />;
+
+  const allPayments = payments || [];
+  const totalPaid = allPayments.filter(p => p.status === 'confirmed').reduce((sum, p) => sum + p.amount, 0);
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Payment History</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">Payment History</h1>
         <p className="text-gray-600 mt-2">Track your course payments and transactions</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Total Paid</CardDescription>
-            <CardTitle className="text-3xl">${totalPaid.toFixed(2)}</CardTitle>
+            <CardTitle className="text-2xl sm:text-3xl">&#8358;{totalPaid.toLocaleString()}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Total Transactions</CardDescription>
-            <CardTitle className="text-3xl">{payments.length}</CardTitle>
+            <CardTitle className="text-2xl sm:text-3xl">{allPayments.length}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Pending Payments</CardDescription>
-            <CardTitle className="text-3xl">
-              {payments.filter(p => p.status === 'pending').length}
-            </CardTitle>
+            <CardTitle className="text-2xl sm:text-3xl">{allPayments.filter(p => p.status === 'pending').length}</CardTitle>
           </CardHeader>
         </Card>
       </div>
 
-      {payments.length === 0 ? (
+      {allPayments.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center py-12">
             <CreditCard className="size-16 mx-auto text-gray-400 mb-4" />
@@ -101,26 +88,20 @@ export default function StudentPayments() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
-                  <TableHead>Description</TableHead>
+                  <TableHead>Course</TableHead>
+                  <TableHead>Method</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {payments.map((payment: any) => (
+                {allPayments.map((payment) => (
                   <TableRow key={payment.id}>
-                    <TableCell>
-                      {new Date(payment.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      {payment.description || payment.courseTitle || 'Course Payment'}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      ${payment.amount?.toFixed(2) || '0.00'}
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(payment.status)}
-                    </TableCell>
+                    <TableCell className="whitespace-nowrap">{new Date(payment.date).toLocaleDateString()}</TableCell>
+                    <TableCell>{payment.course?.title || 'Course Payment'}</TableCell>
+                    <TableCell className="capitalize">{payment.method}</TableCell>
+                    <TableCell className="font-medium whitespace-nowrap">&#8358;{payment.amount.toLocaleString()}</TableCell>
+                    <TableCell>{getStatusBadge(payment.status)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
