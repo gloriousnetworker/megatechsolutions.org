@@ -15,7 +15,8 @@ import {
   LogOut,
   Image,
   Newspaper,
-  Menu
+  Menu,
+  Loader2
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -24,30 +25,37 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (!user || user.role !== requiredRole) {
+    if (!isLoading && (!user || user.role !== requiredRole)) {
       navigate('/login');
     }
-  }, [user, requiredRole, navigate]);
+  }, [user, requiredRole, navigate, isLoading]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <Loader2 className="size-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   if (!user || user.role !== requiredRole) {
     return null;
   }
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 
-  // Define menu items based on role
   const getMenuItems = () => {
     const basePrefix = `/${requiredRole}`;
-    
+
     if (requiredRole === 'student') {
       return [
         { icon: LayoutDashboard, label: 'Dashboard', path: `${basePrefix}/dashboard` },
@@ -58,7 +66,7 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
         { icon: UserCircle, label: 'Profile', path: `${basePrefix}/profile` }
       ];
     }
-    
+
     if (requiredRole === 'staff') {
       return [
         { icon: LayoutDashboard, label: 'Dashboard', path: `${basePrefix}/dashboard` },
@@ -67,8 +75,7 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
         { icon: UserCircle, label: 'Profile', path: `${basePrefix}/profile` }
       ];
     }
-    
-    // Admin menu
+
     return [
       { icon: LayoutDashboard, label: 'Dashboard', path: `${basePrefix}/dashboard` },
       { icon: BookOpen, label: 'Courses', path: `${basePrefix}/courses` },
@@ -86,10 +93,8 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
       <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:static inset-y-0 left-0 z-50 w-64 bg-white border-r transition-transform duration-300`}>
         <div className="flex flex-col h-full">
-          {/* Logo */}
           <div className="flex items-center gap-2 p-6 border-b">
             <img src={logo} alt="MEGA-TECH Logo" className="size-8 text-blue-600" />
             <div>
@@ -98,13 +103,12 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
             </div>
           </div>
 
-          {/* Navigation */}
           <nav className="flex-1 p-4 overflow-y-auto">
             <ul className="space-y-1">
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
-                
+
                 return (
                   <li key={item.path}>
                     <Link
@@ -125,7 +129,6 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
             </ul>
           </nav>
 
-          {/* User Profile & Logout */}
           <div className="p-4 border-t">
             <div className="flex items-center gap-3 mb-3">
               {user.avatar ? (
@@ -153,7 +156,6 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
         </div>
       </aside>
 
-      {/* Overlay for mobile */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
@@ -161,10 +163,8 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
         />
       )}
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <header className="bg-white border-b px-6 py-4 flex items-center justify-between md:justify-end">
+        <header className="bg-white border-b px-4 sm:px-6 py-4 flex items-center justify-between md:justify-end">
           <Button
             variant="ghost"
             size="sm"
@@ -173,7 +173,7 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
           >
             <Menu className="size-5" />
           </Button>
-          
+
           <div className="flex items-center gap-4">
             <Button variant="outline" size="sm" asChild>
               <Link to="/">Back to Website</Link>
@@ -181,8 +181,7 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           <Outlet />
         </main>
       </div>

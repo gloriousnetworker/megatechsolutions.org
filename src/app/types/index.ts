@@ -6,6 +6,9 @@ export interface User {
   name: string;
   role: UserRole;
   avatar?: string;
+  phone?: string;
+  twoFactorEnabled: boolean;
+  createdAt: string;
 }
 
 export interface Course {
@@ -34,6 +37,7 @@ export interface Enrollment {
   enrolledDate: string;
   progress: number;
   status: 'active' | 'completed' | 'pending';
+  course?: Course;
 }
 
 export interface Assignment {
@@ -45,6 +49,7 @@ export interface Assignment {
   status: 'pending' | 'submitted' | 'graded';
   grade?: number;
   submittedDate?: string;
+  course?: { id: string; title: string };
 }
 
 export interface Certificate {
@@ -66,6 +71,10 @@ export interface Payment {
   date: string;
   status: 'pending' | 'confirmed' | 'failed';
   method: string;
+  reference?: string;
+  currency?: string;
+  student?: { id: string; name: string; email: string };
+  course?: { id: string; title: string };
 }
 
 export interface BlogPost {
@@ -112,4 +121,33 @@ export interface Product {
   price: number;
   description: string;
   image: string;
+}
+
+export interface LoginResult {
+  requiresTwoFactor?: boolean;
+  user?: User;
+}
+
+export interface DashboardStats {
+  totalStudents: number;
+  totalCourses: number;
+  totalEnrollments: number;
+  totalStaff: number;
+  totalBlogPosts: number;
+  totalRevenue: number;
+  recentEnrollments: Array<{
+    id: string;
+    studentName: string;
+    courseName: string;
+    enrolledDate: string;
+    status: string;
+  }>;
+  recentPayments: Array<{
+    id: string;
+    studentName: string;
+    courseName: string;
+    amount: number;
+    status: string;
+    date: string;
+  }>;
 }
