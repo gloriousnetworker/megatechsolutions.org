@@ -1,146 +1,69 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
-import { DollarSign, CheckCircle, Clock, XCircle } from 'lucide-react';
-import { toast } from 'sonner';
+import { Skeleton } from '../../components/ui/skeleton';
+import { useApi } from '../../hooks/useApi';
+import { api } from '../../utils/api';
+import { ErrorState } from '../../components/ErrorState';
+import { CreditCard, CheckCircle, Clock, XCircle } from 'lucide-react';
+import type { Payment } from '../../types';
 
 export default function AdminPayments() {
-  const { accessToken } = useAuth();
-  const [payments, setPayments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // TEMPORARY: mock payments data
-  const mockPayments = [
-    { id: 1, userId: 'u123456789', amount: 200, status: 'completed', created_at: '2026-03-01', description: 'Course Payment', courseTitle: 'React Basics' },
-    { id: 2, userId: 'u987654321', amount: 150, status: 'pending', created_at: '2026-03-10', description: 'Course Payment', courseTitle: 'Next.js Advanced' },
-    { id: 3, userId: 'u456789123', amount: 100, status: 'failed', created_at: '2026-03-12', description: 'Course Payment', courseTitle: 'Tailwind CSS' },
-  ];
-
-  useEffect(() => {
-    // Simulate API fetch
-    setTimeout(() => {
-      setPayments(mockPayments);
-      setLoading(false);
-    }, 500); // simulate network delay
-  }, []);
+  const { data: payments, isLoading, error, retry } = useApi<Payment[]>(() => api.payments.all());
 
   const getStatusBadge = (status: string) => {
-    const config: any = {
-      completed: { variant: 'default', icon: CheckCircle, label: 'Completed', color: 'text-green-600' },
-      pending: { variant: 'secondary', icon: Clock, label: 'Pending', color: 'text-yellow-600' },
-      failed: { variant: 'destructive', icon: XCircle, label: 'Failed', color: 'text-red-600' },
+    const config: Record<string, { icon: typeof Clock; label: string; color: string }> = {
+      confirmed: { icon: CheckCircle, label: 'Confirmed', color: 'text-green-600' },
+      pending: { icon: Clock, label: 'Pending', color: 'text-yellow-600' },
+      failed: { icon: XCircle, label: 'Failed', color: 'text-red-600' },
     };
-
     const { icon: Icon, label, color } = config[status] || config.pending;
-
-    return (
-      <Badge variant="outline" className="flex items-center gap-1 w-fit">
-        <Icon className={`size-3 ${color}`} />
-        {label}
-      </Badge>
-    );
+    return <Badge variant="outline" className="flex items-center gap-1 w-fit"><Icon className={`size-3 ${color}`} />{label}</Badge>;
   };
 
-  const totalRevenue = payments
-    .filter(p => p.status === 'completed')
-    .reduce((sum, p) => sum + (p.amount || 0), 0);
+  if (isLoading) return <div className="space-y-4"><div className="grid gap-4 sm:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div><Skeleton className="h-64 rounded-xl" /></div>;
+  if (error) return <ErrorState message={error} onRetry={retry} />;
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  const allPayments = payments || [];
+  const totalRevenue = allPayments.filter(p => p.status === 'confirmed').reduce((sum, p) => sum + p.amount, 0);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Payment Management</h1>
-        <p className="text-gray-600 mt-2">View and manage all platform payments</p>
+        <h1 className="text-2xl md:text-3xl font-bold">Payment Management</h1>
+        <p className="text-gray-600 mt-2">View all payments across the platform</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">Total Revenue</p>
-              <DollarSign className="size-4 text-gray-600" />
-            </div>
-            <p className="text-3xl font-bold">${totalRevenue.toFixed(2)}</p>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">Completed</p>
-              <CheckCircle className="size-4 text-green-600" />
-            </div>
-            <p className="text-3xl font-bold">
-              {payments.filter(p => p.status === 'completed').length}
-            </p>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">Pending</p>
-              <Clock className="size-4 text-yellow-600" />
-            </div>
-            <p className="text-3xl font-bold">
-              {payments.filter(p => p.status === 'pending').length}
-            </p>
-          </CardHeader>
-        </Card>
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+        <Card><CardHeader className="pb-3"><CardDescription>Total Revenue</CardDescription><CardTitle className="text-2xl">&#8358;{totalRevenue.toLocaleString()}</CardTitle></CardHeader></Card>
+        <Card><CardHeader className="pb-3"><CardDescription>Total Transactions</CardDescription><CardTitle className="text-2xl">{allPayments.length}</CardTitle></CardHeader></Card>
+        <Card><CardHeader className="pb-3"><CardDescription>Pending</CardDescription><CardTitle className="text-2xl">{allPayments.filter(p => p.status === 'pending').length}</CardTitle></CardHeader></Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Transactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {payments.length === 0 ? (
-            <div className="text-center py-12 text-gray-600">
-              No payments recorded yet
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>User ID</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
+      {allPayments.length === 0 ? (
+        <Card><CardContent className="pt-6 text-center py-12"><CreditCard className="size-16 mx-auto text-gray-400 mb-4" /><h3 className="text-lg font-semibold mb-2">No Payments Yet</h3></CardContent></Card>
+      ) : (
+        <Card>
+          <CardHeader><CardTitle>All Transactions</CardTitle></CardHeader>
+          <CardContent className="overflow-x-auto">
+            <Table className="min-w-[700px]">
+              <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Student</TableHead><TableHead>Course</TableHead><TableHead>Method</TableHead><TableHead>Amount</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
               <TableBody>
-                {payments.map((payment: any) => (
+                {allPayments.map((payment) => (
                   <TableRow key={payment.id}>
-                    <TableCell>
-                      {new Date(payment.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {payment.userId?.substring(0, 8)}...
-                    </TableCell>
-                    <TableCell>
-                      {payment.description || payment.courseTitle || 'Course Payment'}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      ${payment.amount?.toFixed(2) || '0.00'}
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(payment.status)}
-                    </TableCell>
+                    <TableCell className="whitespace-nowrap">{new Date(payment.date).toLocaleDateString()}</TableCell>
+                    <TableCell className="whitespace-nowrap">{payment.student?.name || 'N/A'}</TableCell>
+                    <TableCell className="whitespace-nowrap">{payment.course?.title || 'N/A'}</TableCell>
+                    <TableCell className="capitalize">{payment.method}</TableCell>
+                    <TableCell className="font-medium whitespace-nowrap">&#8358;{payment.amount.toLocaleString()}</TableCell>
+                    <TableCell>{getStatusBadge(payment.status)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

@@ -1,219 +1,84 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Avatar, AvatarFallback } from '../../components/ui/avatar';
-import { Plus, Users } from 'lucide-react';
+import { Skeleton } from '../../components/ui/skeleton';
+import { useApi } from '../../hooks/useApi';
+import { api } from '../../utils/api';
+import { ErrorState } from '../../components/ErrorState';
+import { Plus, Users, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AdminStaff() {
-  const { accessToken } = useAuth();
-  const [staff, setStaff] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: staff, isLoading, error, retry } = useApi<any[]>(() => api.staff.list());
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    phone: '',
-    position: '',
-  });
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', position: '', phone: '' });
 
-  // TEMPORARY: mock staff data
-  const mockStaff = [
-    { id: 1, name: 'Boluwatife Ade', email: 'boluwatife@example.com', position: 'Senior Instructor', created_at: '2026-03-01' },
-    { id: 2, name: 'Chidera Okafor', email: 'chidera@example.com', position: 'Instructor', created_at: '2026-02-15' },
-    { id: 3, name: 'Tobi Smith', email: 'tobi@example.com', position: 'Instructor', created_at: '2026-01-20' },
-  ];
-
-  useEffect(() => {
-    // Simulate fetch
-    setTimeout(() => {
-      setStaff(mockStaff);
-      setLoading(false);
-    }, 500); // simulate network delay
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // TEMPORARY: add staff locally
-    const newStaff = {
-      id: staff.length + 1,
-      ...formData,
-      created_at: new Date().toISOString(),
-    };
-    setStaff([...staff, newStaff]);
-    setFormData({ name: '', email: '', password: '', phone: '', position: '' });
-    setDialogOpen(false);
-    toast.success('Staff member added successfully!');
+    setSubmitting(true);
+    try {
+      await api.staff.create(formData);
+      toast.success('Staff member created!');
+      setDialogOpen(false);
+      setFormData({ name: '', email: '', password: '', position: '', phone: '' });
+      retry();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create staff');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  if (isLoading) return <div className="space-y-4"><Skeleton className="h-10 w-48" /><Skeleton className="h-64 rounded-xl" /></div>;
+  if (error) return <ErrorState message={error} onRetry={retry} />;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
-
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Staff Management</h1>
-          <p className="text-sm sm:text-base text-gray-600 mt-1">
-            Manage teaching staff and instructors
-          </p>
+          <p className="text-sm text-gray-600 mt-1">Manage instructors and staff members</p>
         </div>
-
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto">
-              <Plus className="size-4 mr-2" />
-              Add Staff
-            </Button>
-          </DialogTrigger>
-
-          {/* Responsive Dialog */}
-          <DialogContent className="w-[95vw] sm:max-w-lg rounded-xl">
-            <DialogHeader>
-              <DialogTitle>Add New Staff Member</DialogTitle>
-              <DialogDescription>
-                Create a new staff account with instructor privileges
-              </DialogDescription>
-            </DialogHeader>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="position">Position</Label>
-                <Input
-                  id="position"
-                  placeholder="e.g., Senior Instructor"
-                  value={formData.position}
-                  onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                />
-              </div>
-
-              <Button type="submit" className="w-full">
-                Add Staff Member
+          <DialogTrigger asChild><Button><Plus className="size-4 mr-2" />Add Staff</Button></DialogTrigger>
+          <DialogContent className="w-[95vw] sm:max-w-lg">
+            <DialogHeader><DialogTitle>Add Staff Member</DialogTitle></DialogHeader>
+            <form onSubmit={handleCreate} className="space-y-4">
+              <div><Label>Full Name</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required /></div>
+              <div><Label>Email</Label><Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required /></div>
+              <div><Label>Password</Label><Input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required placeholder="Min 8 chars, uppercase, lowercase, number" /></div>
+              <div><Label>Position</Label><Input value={formData.position} onChange={(e) => setFormData({ ...formData, position: e.target.value })} required placeholder="e.g., Senior Instructor" /></div>
+              <div><Label>Phone</Label><Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} /></div>
+              <Button type="submit" className="w-full" disabled={submitting}>
+                {submitting ? <Loader2 className="size-4 animate-spin mr-2" /> : null}Create Staff Member
               </Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Staff Table */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg sm:text-xl">
-            All Staff Members ({staff.length})
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          {staff.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="size-14 sm:size-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Staff Yet</h3>
-              <p className="text-sm sm:text-base text-gray-600">
-                Add your first staff member to get started.
-              </p>
-            </div>
-          ) : (
-            <div className="w-full overflow-x-auto">
-              <Table className="min-w-[700px]">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Position</TableHead>
-                    <TableHead>Joined</TableHead>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  {staff.map((member: any) => (
-                    <TableRow key={member.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3 min-w-[180px]">
-                          <Avatar className="h-9 w-9">
-                            <AvatarFallback>
-                              {member.name?.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium whitespace-nowrap">
-                            {member.name}
-                          </span>
-                        </div>
-                      </TableCell>
-
-                      <TableCell className="whitespace-nowrap">
-                        {member.email}
-                      </TableCell>
-
-                      <TableCell className="whitespace-nowrap">
-                        {member.position || 'Instructor'}
-                      </TableCell>
-
-                      <TableCell className="whitespace-nowrap">
-                        {member.created_at
-                          ? new Date(member.created_at).toLocaleDateString()
-                          : 'N/A'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+        <CardHeader><CardTitle className="flex items-center gap-2"><Users className="size-5" />{(staff || []).length} Staff Members</CardTitle></CardHeader>
+        <CardContent className="overflow-x-auto">
+          <Table className="min-w-[600px]">
+            <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Position</TableHead><TableHead>Joined</TableHead></TableRow></TableHeader>
+            <TableBody>
+              {(staff || []).map((member: any) => (
+                <TableRow key={member.id}>
+                  <TableCell><div className="flex items-center gap-3"><Avatar className="h-9 w-9"><AvatarFallback>{member.name?.charAt(0)}</AvatarFallback></Avatar><span className="font-medium whitespace-nowrap">{member.name}</span></div></TableCell>
+                  <TableCell className="whitespace-nowrap">{member.email}</TableCell>
+                  <TableCell className="whitespace-nowrap">{member.position || 'N/A'}</TableCell>
+                  <TableCell className="whitespace-nowrap">{member.createdAt ? new Date(member.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>
