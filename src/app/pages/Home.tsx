@@ -2,12 +2,19 @@ import { Link } from 'react-router';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { mockCourses, mockBlogPosts } from '../data/mockData';
+import { useApi } from '../hooks/useApi';
+import { api } from '../utils/api';
+import { CourseGridSkeleton } from '../components/skeletons/CourseCardSkeleton';
+import { BlogGridSkeleton } from '../components/skeletons/BlogCardSkeleton';
 import { ArrowRight, Award, Users, BookOpen, TrendingUp, Star, CheckCircle } from 'lucide-react';
+import type { Course, BlogPost } from '../types';
 
 export default function Home() {
-  const featuredCourses = mockCourses.filter(c => c.isFeatured).slice(0, 3);
-  const latestPosts = mockBlogPosts.slice(0, 3);
+  const { data: courses } = useApi<Course[]>(() => api.courses.list());
+  const { data: posts } = useApi<BlogPost[]>(() => api.blog.list());
+
+  const featuredCourses = (courses || []).filter(c => c.isFeatured).slice(0, 3);
+  const latestPosts = (posts || []).slice(0, 3);
 
   return (
     <div>
@@ -73,7 +80,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {!courses ? <CourseGridSkeleton count={3} /> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {featuredCourses.map((course) => (
               <Card key={course.id} className="hover:shadow-lg transition-shadow">
                 <img src={course.image} alt={course.title} className="w-full h-48 object-cover rounded-t-lg" />
@@ -107,7 +114,7 @@ export default function Home() {
                 </CardFooter>
               </Card>
             ))}
-          </div>
+          </div>}
 
           <div className="text-center">
             <Button size="lg" variant="outline" asChild>
@@ -243,7 +250,7 @@ export default function Home() {
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Latest News & Updates</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {!posts ? <BlogGridSkeleton count={3} /> : <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {latestPosts.map((post) => (
               <Card key={post.id} className="hover:shadow-lg transition-shadow">
                 <img src={post.image} alt={post.title} className="w-full h-48 object-cover rounded-t-lg" />
@@ -262,7 +269,7 @@ export default function Home() {
                 </CardFooter>
               </Card>
             ))}
-          </div>
+          </div>}
 
           <div className="text-center">
             <Button variant="outline" asChild>

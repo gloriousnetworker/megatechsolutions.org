@@ -1,14 +1,37 @@
 import { useParams, Link } from 'react-router';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
-import { mockCourses } from '../data/mockData';
-import { ArrowLeft, Clock, Users, Award, BookOpen, CheckCircle, Star } from 'lucide-react';
+import { Skeleton } from '../components/ui/skeleton';
+import { useApi } from '../hooks/useApi';
+import { api } from '../utils/api';
+import { ErrorState } from '../components/ErrorState';
+import { ArrowLeft, Clock, Users, Award, BookOpen, CheckCircle, Star, Loader2 } from 'lucide-react';
+import type { Course } from '../types';
 
 export default function CourseDetail() {
   const { id } = useParams();
-  const course = mockCourses.find(c => c.id === id);
+  const { data: course, isLoading, error, retry } = useApi<Course>(() => api.courses.get(id!), [id]);
+
+  if (isLoading) {
+    return (
+      <div>
+        <div className="bg-gradient-to-br from-blue-600 to-blue-800 py-12">
+          <div className="container mx-auto px-4 space-y-4">
+            <Skeleton className="h-8 w-32 bg-white/20" />
+            <Skeleton className="h-10 w-2/3 bg-white/20" />
+            <Skeleton className="h-6 w-1/2 bg-white/20" />
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-12">
+          <Skeleton className="h-64 w-full rounded-lg" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) return <ErrorState message={error} onRetry={retry} />;
 
   if (!course) {
     return (
@@ -23,7 +46,6 @@ export default function CourseDetail() {
 
   return (
     <div>
-      {/* Hero */}
       <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-12">
         <div className="container mx-auto px-4">
           <Button variant="ghost" className="mb-4 text-white hover:text-white/80 -ml-4" asChild>
@@ -32,21 +54,21 @@ export default function CourseDetail() {
               Back to Courses
             </Link>
           </Button>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
               <Badge className="mb-4 bg-white/20 text-white border-white/30">{course.category}</Badge>
               <h1 className="text-3xl md:text-4xl font-bold mb-4">{course.title}</h1>
-              <p className="text-xl text-blue-50 mb-6">{course.description}</p>
-              
-              <div className="flex flex-wrap gap-6 text-sm">
+              <p className="text-lg sm:text-xl text-blue-50 mb-6">{course.description}</p>
+
+              <div className="flex flex-wrap gap-4 sm:gap-6 text-sm">
                 <div className="flex items-center gap-2">
                   <Star className="size-5 fill-yellow-400 text-yellow-400" />
                   <span className="font-medium">{course.rating} rating</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="size-5" />
-                  <span>{course.enrolledStudents} students enrolled</span>
+                  <span>{course.enrolledStudents} students</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="size-5" />
@@ -64,18 +86,17 @@ export default function CourseDetail() {
 
       <div className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-3 gap-8">
-          {/* Main Content */}
           <div className="md:col-span-2 space-y-8">
-            {/* Course Image */}
-            <img src={course.image} alt={course.title} className="w-full h-64 object-cover rounded-lg shadow-lg" />
+            {course.image && (
+              <img src={course.image} alt={course.title} className="w-full h-48 sm:h-64 object-cover rounded-lg shadow-lg" />
+            )}
 
-            {/* What You'll Learn */}
             <Card>
               <CardHeader>
                 <CardTitle>What You'll Learn</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 gap-3">
+                <div className="grid sm:grid-cols-2 gap-3">
                   {course.learningOutcomes.map((outcome, index) => (
                     <div key={index} className="flex items-start gap-2">
                       <CheckCircle className="size-5 text-green-600 shrink-0 mt-0.5" />
@@ -86,7 +107,6 @@ export default function CourseDetail() {
               </CardContent>
             </Card>
 
-            {/* Requirements */}
             <Card>
               <CardHeader>
                 <CardTitle>Requirements</CardTitle>
@@ -95,7 +115,7 @@ export default function CourseDetail() {
                 <ul className="space-y-2">
                   {course.requirements.map((req, index) => (
                     <li key={index} className="flex items-start gap-2">
-                      <span className="text-blue-600 mt-1">•</span>
+                      <span className="text-blue-600 mt-1">&#8226;</span>
                       <span>{req}</span>
                     </li>
                   ))}
@@ -103,7 +123,6 @@ export default function CourseDetail() {
               </CardContent>
             </Card>
 
-            {/* Curriculum */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -128,13 +147,12 @@ export default function CourseDetail() {
             </Card>
           </div>
 
-          {/* Sidebar */}
           <div>
             <Card className="sticky top-24">
               <CardContent className="pt-6">
                 <div className="text-center mb-6">
                   <div className="text-4xl font-bold text-blue-600 mb-2">
-                    ₦{(course.price / 1000).toFixed(0)}k
+                    &#8358;{(course.price / 1000).toFixed(0)}k
                   </div>
                   <p className="text-sm text-gray-600">One-time payment</p>
                 </div>
@@ -142,7 +160,7 @@ export default function CourseDetail() {
                 <Button size="lg" className="w-full mb-3" asChild>
                   <Link to="/register">Enroll Now</Link>
                 </Button>
-                
+
                 <Button size="lg" variant="outline" className="w-full">
                   Add to Cart
                 </Button>
@@ -150,6 +168,10 @@ export default function CourseDetail() {
                 <Separator className="my-6" />
 
                 <div className="space-y-4 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Instructor:</span>
+                    <span className="font-medium">{course.instructor}</span>
+                  </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Duration:</span>
                     <span className="font-medium">{course.duration}</span>
@@ -163,10 +185,6 @@ export default function CourseDetail() {
                     <span className="font-medium">{course.enrolledStudents}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Language:</span>
-                    <span className="font-medium">English</span>
-                  </div>
-                  <div className="flex justify-between">
                     <span className="text-gray-600">Certificate:</span>
                     <span className="font-medium">Yes</span>
                   </div>
@@ -177,26 +195,11 @@ export default function CourseDetail() {
                 <div className="space-y-3">
                   <h4 className="font-semibold">This course includes:</h4>
                   <ul className="space-y-2 text-sm text-gray-600">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="size-4 text-green-600" />
-                      Lifetime access
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="size-4 text-green-600" />
-                      Downloadable resources
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="size-4 text-green-600" />
-                      Certificate of completion
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="size-4 text-green-600" />
-                      Hands-on projects
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="size-4 text-green-600" />
-                      Community support
-                    </li>
+                    <li className="flex items-center gap-2"><CheckCircle className="size-4 text-green-600" />Lifetime access</li>
+                    <li className="flex items-center gap-2"><CheckCircle className="size-4 text-green-600" />Downloadable resources</li>
+                    <li className="flex items-center gap-2"><CheckCircle className="size-4 text-green-600" />Certificate of completion</li>
+                    <li className="flex items-center gap-2"><CheckCircle className="size-4 text-green-600" />Hands-on projects</li>
+                    <li className="flex items-center gap-2"><CheckCircle className="size-4 text-green-600" />Community support</li>
                   </ul>
                 </div>
               </CardContent>
