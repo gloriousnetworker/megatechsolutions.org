@@ -4,22 +4,32 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
-import { mockCertificates } from '../data/mockData';
-import { Search, CheckCircle, XCircle, Award } from 'lucide-react';
+import { api } from '../utils/api';
+import { Search, CheckCircle, XCircle, Award, Loader2 } from 'lucide-react';
+import type { Certificate } from '../types';
 
 export default function VerifyCertificate() {
   const [certificateId, setCertificateId] = useState('');
-  const [result, setResult] = useState<typeof mockCertificates[0] | null | 'not-found'>(null);
+  const [result, setResult] = useState<Certificate | null | 'not-found'>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
 
-  const handleVerify = (e: React.FormEvent) => {
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    const certificate = mockCertificates.find(c => c.certificateNumber === certificateId);
-    setResult(certificate || 'not-found');
+    setIsVerifying(true);
+    setResult(null);
+
+    try {
+      const certificate = await api.certificates.verify(certificateId);
+      setResult(certificate);
+    } catch {
+      setResult('not-found');
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   return (
     <div>
-      {/* Hero */}
       <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Verify Certificate</h1>
@@ -31,7 +41,6 @@ export default function VerifyCertificate() {
 
       <section className="py-12">
         <div className="container mx-auto px-4 max-w-2xl">
-          {/* Verification Form */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>Certificate Verification</CardTitle>
@@ -50,19 +59,16 @@ export default function VerifyCertificate() {
                     placeholder="MT-2025-001234"
                     required
                   />
-                  <p className="text-sm text-gray-500 mt-1">
-                    Example: MT-2025-001234
-                  </p>
+                  <p className="text-sm text-gray-500 mt-1">Example: MT-2025-001234</p>
                 </div>
-                <Button type="submit" className="w-full">
-                  <Search className="mr-2 size-4" />
+                <Button type="submit" className="w-full" disabled={isVerifying}>
+                  {isVerifying ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Search className="mr-2 size-4" />}
                   Verify Certificate
                 </Button>
               </form>
             </CardContent>
           </Card>
 
-          {/* Results */}
           {result === 'not-found' && (
             <Card className="border-red-200 bg-red-50">
               <CardContent className="pt-6">
@@ -71,8 +77,7 @@ export default function VerifyCertificate() {
                   <div>
                     <h3 className="font-semibold mb-1">Certificate Not Found</h3>
                     <p className="text-sm">
-                      The certificate number you entered could not be found in our database. 
-                      Please check the number and try again.
+                      The certificate number you entered could not be found. Please check the number and try again.
                     </p>
                   </div>
                 </div>
@@ -88,12 +93,8 @@ export default function VerifyCertificate() {
                     <CheckCircle className="size-8 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-green-900 mb-1">
-                      Valid Certificate
-                    </h3>
-                    <p className="text-sm text-green-700">
-                      This certificate has been verified and is authentic
-                    </p>
+                    <h3 className="text-xl font-semibold text-green-900 mb-1">Valid Certificate</h3>
+                    <p className="text-sm text-green-700">This certificate has been verified and is authentic</p>
                   </div>
                 </div>
 
@@ -111,28 +112,22 @@ export default function VerifyCertificate() {
                       <Label className="text-gray-600">Certificate Number</Label>
                       <p className="font-semibold">{result.certificateNumber}</p>
                     </div>
-
                     <div>
                       <Label className="text-gray-600">Student Name</Label>
                       <p className="font-semibold">{result.studentName}</p>
                     </div>
-
                     <div>
                       <Label className="text-gray-600">Course Name</Label>
                       <p className="font-semibold">{result.courseName}</p>
                     </div>
-
                     <div>
                       <Label className="text-gray-600">Issue Date</Label>
                       <p className="font-semibold">
                         {new Date(result.issueDate).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
+                          year: 'numeric', month: 'long', day: 'numeric'
                         })}
                       </p>
                     </div>
-
                     <div>
                       <Label className="text-gray-600">Status</Label>
                       <div className="mt-1">
@@ -147,7 +142,6 @@ export default function VerifyCertificate() {
             </Card>
           )}
 
-          {/* Info */}
           <Card className="mt-8">
             <CardHeader>
               <CardTitle>About Certificate Verification</CardTitle>
@@ -158,7 +152,7 @@ export default function VerifyCertificate() {
                 Each certificate has a unique number that can be verified through this system.
               </p>
               <p>
-                If you suspect fraud or have questions about a certificate, please contact us at 
+                If you suspect fraud or have questions about a certificate, please contact us at
                 <a href="mailto:certificates@megatech.com" className="text-blue-600 hover:underline ml-1">
                   certificates@megatech.com
                 </a>

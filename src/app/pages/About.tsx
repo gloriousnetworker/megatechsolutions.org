@@ -7,7 +7,6 @@ import legalAdvisorImage from '../../assets/4589a0cf374a7f51aad39b9046c09defb8cc
 export default function About() {
   return (
     <div>
-      {/* Hero */}
       <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">About MEGA-TECH Solutions</h1>
@@ -17,7 +16,6 @@ export default function About() {
         </div>
       </section>
 
-      {/* Company Overview */}
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -44,7 +42,6 @@ export default function About() {
         </div>
       </section>
 
-      {/* Vision & Mission */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-8">
@@ -75,7 +72,6 @@ export default function About() {
         </div>
       </section>
 
-      {/* Achievements */}
       <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">Our Achievements</h2>
@@ -116,7 +112,6 @@ export default function About() {
         </div>
       </section>
 
-      {/* Partners */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-4">Our Partners</h2>
@@ -139,7 +134,6 @@ export default function About() {
         </div>
       </section>
 
-      {/* Values */}
       <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">Our Core Values</h2>
@@ -182,7 +176,6 @@ export default function About() {
         </div>
       </section>
 
-      {/* Leadership Team */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-4">Our Leadership Team</h2>
@@ -190,12 +183,10 @@ export default function About() {
             Meet the experienced professionals guiding MEGA-TECH Solutions towards excellence
           </p>
 
-          {/* CEO - Featured Section */}
           <div className="max-w-5xl mx-auto mb-12">
             <Card className="overflow-hidden">
               <CardContent className="p-8">
                 <div className="grid md:grid-cols-3 gap-8 items-start">
-                  {/* CEO Image */}
                   <div className="text-center">
                     <img
                       src={ceoImage}
@@ -204,7 +195,6 @@ export default function About() {
                     />
                   </div>
                   
-                  {/* CEO Details */}
                   <div className="md:col-span-2 space-y-4">
                     <div>
                       <h3 className="text-2xl font-bold mb-1">Engr. Audu Hamza Adabara</h3>
@@ -275,9 +265,7 @@ export default function About() {
             </Card>
           </div>
 
-          {/* Other Leadership Members */}
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Manager */}
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center mb-4">
@@ -303,7 +291,6 @@ export default function About() {
               </CardContent>
             </Card>
 
-            {/* Legal Advisor */}
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center mb-4">
@@ -325,7 +312,6 @@ export default function About() {
               </CardContent>
             </Card>
 
-            {/* Technical Adviser */}
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center mb-4">

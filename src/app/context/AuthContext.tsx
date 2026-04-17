@@ -1,51 +1,62 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserRole } from '../types';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { User, LoginResult } from '../types';
+import { api, AuthError } from '../utils/api';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string, role: UserRole) => Promise<void>;
-  logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<LoginResult>;
+  login2fa: (email: string, password: string, code: string) => Promise<void>;
+  register: (data: { name: string; email: string; password: string; phone?: string }) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored user on mount
-    const storedUser = localStorage.getItem('megatech_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    api.auth.me()
+      .then((data) => setUser(data.user))
+      .catch(() => setUser(null))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const login = useCallback(async (email: string, password: string): Promise<LoginResult> => {
+    const data = await api.auth.login({ email, password });
+
+    if (data.requiresTwoFactor) {
+      return { requiresTwoFactor: true };
+    }
+
+    setUser(data.user);
+    return { user: data.user };
+  }, []);
+
+  const login2fa = useCallback(async (email: string, password: string, code: string) => {
+    const data = await api.auth.login2fa({ email, password, twoFactorCode: code });
+    setUser(data.user);
+  }, []);
+
+  const register = useCallback(async (data: { name: string; email: string; password: string; phone?: string }) => {
+    const result = await api.auth.register(data);
+    setUser(result.user);
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await api.auth.logout();
+    } catch {
+    } finally {
+      setUser(null);
     }
   }, []);
 
-  const login = async (email: string, password: string, role: UserRole) => {
-    // Mock login - in real app this would call an API
-    const mockUser: User = {
-      id: role === 'admin' ? 'admin-1' : role === 'staff' ? 'staff-1' : 'student-1',
-      email,
-      name: role === 'admin' ? 'Admin User' : role === 'staff' ? 'John Doe' : 'Alex Johnson',
-      role,
-      avatar: role === 'admin' 
-        ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop'
-        : role === 'staff'
-        ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop'
-        : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop'
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem('megatech_user', JSON.stringify(mockUser));
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('megatech_user');
-  };
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, login2fa, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

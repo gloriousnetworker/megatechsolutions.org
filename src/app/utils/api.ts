@@ -1,242 +1,165 @@
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
 
-const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-e700f198`;
+export class ApiError extends Error {
+  statusCode: number
+  code: string
+
+  constructor(message: string, statusCode: number, code: string) {
+    super(message)
+    this.statusCode = statusCode
+    this.code = code
+  }
+}
+
+export class AuthError extends ApiError {
+  constructor(message = 'Session expired') {
+    super(message, 401, 'AUTH_ERROR')
+  }
+}
+
+let refreshPromise: Promise<void> | null = null
+
+async function refreshTokens(): Promise<void> {
+  const res = await fetch(`${API_BASE}/auth/refresh`, {
+    method: 'POST',
+    credentials: 'include',
+  })
+  if (!res.ok) throw new AuthError()
+}
+
+async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const url = `${API_BASE}${path}`
+
+  const res = await fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+
+  if (res.status === 401) {
+    if (!refreshPromise) {
+      refreshPromise = refreshTokens().finally(() => { refreshPromise = null })
+    }
+
+    try {
+      await refreshPromise
+    } catch {
+      throw new AuthError()
+    }
+
+    const retryRes = await fetch(url, {
+      ...options,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    })
+
+    if (!retryRes.ok) {
+      const errorData = await retryRes.json().catch(() => ({ error: { message: 'Request failed', code: 'ERROR' } }))
+      throw new ApiError(errorData.error?.message || 'Request failed', retryRes.status, errorData.error?.code || 'ERROR')
+    }
+
+    const retryData = await retryRes.json()
+    return retryData.data as T
+  }
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: { message: 'Request failed', code: 'ERROR' } }))
+    throw new ApiError(errorData.error?.message || 'Request failed', res.status, errorData.error?.code || 'ERROR')
+  }
+
+  const data = await res.json()
+  return data.data as T
+}
+
+function get<T>(path: string) {
+  return apiFetch<T>(path)
+}
+
+function post<T>(path: string, body?: unknown) {
+  return apiFetch<T>(path, {
+    method: 'POST',
+    body: body ? JSON.stringify(body) : undefined,
+  })
+}
+
+function put<T>(path: string, body?: unknown) {
+  return apiFetch<T>(path, {
+    method: 'PUT',
+    body: body ? JSON.stringify(body) : undefined,
+  })
+}
+
+function del<T>(path: string) {
+  return apiFetch<T>(path, { method: 'DELETE' })
+}
 
 export const api = {
-  // Courses
-  getCourses: async () => {
-    const response = await fetch(`${API_BASE}/courses`, {
-      headers: { 'Authorization': `Bearer ${publicAnonKey}` },
-    });
-    return response.json();
+  auth: {
+    login: (data: { email: string; password: string }) => post<any>('/auth/login', data),
+    login2fa: (data: { email: string; password: string; twoFactorCode: string }) => post<any>('/auth/login/2fa', data),
+    register: (data: { name: string; email: string; password: string; phone?: string }) => post<any>('/auth/register', data),
+    logout: () => post<any>('/auth/logout'),
+    me: () => get<any>('/auth/me'),
+    refresh: () => post<any>('/auth/refresh'),
+    forgotPassword: (data: { email: string }) => post<any>('/auth/forgot-password', data),
+    resetPassword: (data: { token: string; password: string }) => post<any>('/auth/reset-password', data),
+    changePassword: (data: { currentPassword: string; newPassword: string }) => post<any>('/auth/change-password', data),
+    setup2fa: () => post<any>('/auth/2fa/setup'),
+    enable2fa: (data: { code: string }) => post<any>('/auth/2fa/enable', data),
+    disable2fa: (data: { code: string }) => post<any>('/auth/2fa/disable', data),
   },
-
-  getCourse: async (id: string) => {
-    const response = await fetch(`${API_BASE}/courses/${id}`, {
-      headers: { 'Authorization': `Bearer ${publicAnonKey}` },
-    });
-    return response.json();
+  courses: {
+    list: () => get<any[]>('/courses'),
+    get: (id: string) => get<any>(`/courses/${id}`),
+    create: (data: any) => post<any>('/courses', data),
+    update: (id: string, data: any) => put<any>(`/courses/${id}`, data),
+    delete: (id: string) => del<any>(`/courses/${id}`),
   },
-
-  createCourse: async (course: any, token: string) => {
-    const response = await fetch(`${API_BASE}/courses`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(course),
-    });
-    return response.json();
+  enrollments: {
+    enroll: (data: { courseId: string }) => post<any>('/enrollments', data),
+    my: () => get<any[]>('/enrollments/my'),
   },
-
-  updateCourse: async (id: string, course: any, token: string) => {
-    const response = await fetch(`${API_BASE}/courses/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(course),
-    });
-    return response.json();
+  students: {
+    list: () => get<any[]>('/students'),
+    update: (id: string, data: any) => put<any>(`/students/${id}`, data),
   },
-
-  deleteCourse: async (id: string, token: string) => {
-    const response = await fetch(`${API_BASE}/courses/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    return response.json();
+  staff: {
+    list: () => get<any[]>('/staff'),
+    listPublic: () => get<any[]>('/staff/public'),
+    create: (data: any) => post<any>('/staff', data),
   },
-
-  // Enrollments
-  enrollInCourse: async (courseId: string, token: string) => {
-    const response = await fetch(`${API_BASE}/enrollments`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ courseId }),
-    });
-    return response.json();
+  payments: {
+    initialize: (data: { courseId: string; callbackUrl?: string }) => post<any>('/payments/initialize', data),
+    verify: (reference: string) => get<any>(`/payments/verify/${reference}`),
+    create: (data: { courseId: string; amount: number; method: string }) => post<any>('/payments', data),
+    my: () => get<any[]>('/payments/my'),
+    all: () => get<any[]>('/payments'),
   },
-
-  getMyEnrollments: async (token: string) => {
-    const response = await fetch(`${API_BASE}/enrollments/my`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    return response.json();
+  assignments: {
+    submit: (data: any) => post<any>('/assignments', data),
+    my: () => get<any[]>('/assignments/my'),
   },
-
-  // Students
-  getStudents: async (token: string) => {
-    const response = await fetch(`${API_BASE}/students`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    return response.json();
+  certificates: {
+    issue: (data: { studentId: string; courseId: string }) => post<any>('/certificates', data),
+    verify: (id: string) => get<any>(`/certificates/${id}/verify`),
+    my: () => get<any[]>('/certificates/my'),
   },
-
-  updateStudent: async (id: string, student: any, token: string) => {
-    const response = await fetch(`${API_BASE}/students/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(student),
-    });
-    return response.json();
+  blog: {
+    list: () => get<any[]>('/blog'),
+    create: (data: any) => post<any>('/blog', data),
   },
-
-  // Staff
-  getStaff: async (token: string) => {
-    const response = await fetch(`${API_BASE}/staff`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    return response.json();
+  gallery: {
+    list: () => get<any[]>('/gallery'),
+    add: (data: any) => post<any>('/gallery', data),
+    delete: (id: string) => del<any>(`/gallery/${id}`),
   },
-
-  createStaff: async (staff: any, token: string) => {
-    const response = await fetch(`${API_BASE}/staff`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(staff),
-    });
-    return response.json();
+  stats: {
+    dashboard: () => get<any>('/stats/dashboard'),
   },
-
-  // Payments
-  createPayment: async (payment: any, token: string) => {
-    const response = await fetch(`${API_BASE}/payments`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(payment),
-    });
-    return response.json();
-  },
-
-  getMyPayments: async (token: string) => {
-    const response = await fetch(`${API_BASE}/payments/my`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    return response.json();
-  },
-
-  getAllPayments: async (token: string) => {
-    const response = await fetch(`${API_BASE}/payments`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    return response.json();
-  },
-
-  // Certificates
-  issueCertificate: async (certificate: any, token: string) => {
-    const response = await fetch(`${API_BASE}/certificates`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(certificate),
-    });
-    return response.json();
-  },
-
-  verifyCertificate: async (id: string) => {
-    const response = await fetch(`${API_BASE}/certificates/${id}/verify`, {
-      headers: { 'Authorization': `Bearer ${publicAnonKey}` },
-    });
-    return response.json();
-  },
-
-  getMyCertificates: async (token: string) => {
-    const response = await fetch(`${API_BASE}/certificates/my`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    return response.json();
-  },
-
-  // Blog
-  getBlogPosts: async () => {
-    const response = await fetch(`${API_BASE}/blog`, {
-      headers: { 'Authorization': `Bearer ${publicAnonKey}` },
-    });
-    return response.json();
-  },
-
-  createBlogPost: async (post: any, token: string) => {
-    const response = await fetch(`${API_BASE}/blog`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(post),
-    });
-    return response.json();
-  },
-
-  // Gallery
-  getGalleryItems: async () => {
-    const response = await fetch(`${API_BASE}/gallery`, {
-      headers: { 'Authorization': `Bearer ${publicAnonKey}` },
-    });
-    return response.json();
-  },
-
-  addGalleryItem: async (item: any, token: string) => {
-    const response = await fetch(`${API_BASE}/gallery`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(item),
-    });
-    return response.json();
-  },
-
-  deleteGalleryItem: async (id: string, token: string) => {
-    const response = await fetch(`${API_BASE}/gallery/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    return response.json();
-  },
-
-  // Dashboard Stats
-  getDashboardStats: async (token: string) => {
-    const response = await fetch(`${API_BASE}/stats/dashboard`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    return response.json();
-  },
-
-  // Assignments
-  submitAssignment: async (assignment: any, token: string) => {
-    const response = await fetch(`${API_BASE}/assignments`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(assignment),
-    });
-    return response.json();
-  },
-
-  getMyAssignments: async (token: string) => {
-    const response = await fetch(`${API_BASE}/assignments/my`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    return response.json();
-  },
-};
+}

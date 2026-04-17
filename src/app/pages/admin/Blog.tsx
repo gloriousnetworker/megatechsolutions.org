@@ -4,297 +4,92 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Badge } from '../../components/ui/badge';
-import { mockBlogPosts } from '../../data/mockData';
-import { Newspaper, Edit, Trash2, Plus } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
+import { Skeleton } from '../../components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
+import { useApi } from '../../hooks/useApi';
+import { api } from '../../utils/api';
+import { ErrorState } from '../../components/ErrorState';
+import { Newspaper, Plus, Loader2, Calendar, User } from 'lucide-react';
 import { toast } from 'sonner';
+import type { BlogPost } from '../../types';
 
 export default function AdminBlog() {
-  const [posts, setPosts] = useState(mockBlogPosts);
+  const { data: posts, isLoading, error, retry } = useApi<BlogPost[]>(() => api.blog.list());
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newPost, setNewPost] = useState({
-    title: '',
-    excerpt: '',
-    content: '',
-    category: 'Articles',
-    image: '',
-    tags: [] as string[]
-  });
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ title: '', content: '', excerpt: '', category: '', image: '', tags: '' });
 
-  const handleCreatePost = () => {
-    const post = {
-      id: `${Date.now()}`,
-      ...newPost,
-      author: 'Admin',
-      date: new Date().toISOString().split('T')[0]
-    };
-    
-    setPosts([post, ...posts]);
-    toast.success('Blog post created successfully!');
-    setDialogOpen(false);
-    setNewPost({ title: '', excerpt: '', content: '', category: 'Articles', image: '', tags: [] });
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await api.blog.create({ ...formData, tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean) });
+      toast.success('Blog post created!');
+      setDialogOpen(false);
+      setFormData({ title: '', content: '', excerpt: '', category: '', image: '', tags: '' });
+      retry();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create post');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setPosts(posts.filter(post => post.id !== id));
-    toast.success('Blog post deleted successfully!');
-  };
+  if (isLoading) return <div className="grid grid-cols-1 md:grid-cols-2 gap-6">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-48 rounded-xl" />)}</div>;
+  if (error) return <ErrorState message={error} onRetry={retry} />;
 
   return (
-  <div className="space-y-6">
-    {/* Header */}
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Blog Management</h1>
-        <p className="text-gray-600 text-sm sm:text-base">
-          Create and manage blog posts
-        </p>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold">Blog Management</h1>
+          <p className="text-sm text-gray-600 mt-1">Create and manage blog posts</p>
+        </div>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild><Button><Plus className="size-4 mr-2" />New Post</Button></DialogTrigger>
+          <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader><DialogTitle>Create Blog Post</DialogTitle></DialogHeader>
+            <form onSubmit={handleCreate} className="space-y-4">
+              <div><Label>Title</Label><Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required /></div>
+              <div><Label>Excerpt</Label><Input value={formData.excerpt} onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })} required placeholder="Short summary" /></div>
+              <div><Label>Content</Label><Textarea value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} rows={6} required /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><Label>Category</Label><Input value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} required placeholder="e.g., Tech Updates" /></div>
+                <div><Label>Tags (comma-separated)</Label><Input value={formData.tags} onChange={(e) => setFormData({ ...formData, tags: e.target.value })} placeholder="AI, Education" /></div>
+              </div>
+              <div><Label>Image URL</Label><Input value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} placeholder="https://..." /></div>
+              <Button type="submit" className="w-full" disabled={submitting}>
+                {submitting ? <Loader2 className="size-4 animate-spin mr-2" /> : null}Publish Post
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogTrigger asChild>
-          <Button className="w-full sm:w-auto">
-            <Plus className="mr-2 size-4" />
-            Create Post
-          </Button>
-        </DialogTrigger>
-
-        <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Create New Post</DialogTitle>
-            <DialogDescription>
-              Write a new blog post or announcement
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                value={newPost.title}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, title: e.target.value })
-                }
-                placeholder="Enter post title"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="excerpt">Excerpt</Label>
-              <Textarea
-                id="excerpt"
-                value={newPost.excerpt}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, excerpt: e.target.value })
-                }
-                placeholder="Brief summary of the post"
-                rows={2}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="content">Content</Label>
-              <Textarea
-                id="content"
-                value={newPost.content}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, content: e.target.value })
-                }
-                placeholder="Full post content"
-                rows={6}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="category">Category</Label>
-              <Select
-                value={newPost.category}
-                onValueChange={(value) =>
-                  setNewPost({ ...newPost, category: value })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Articles">Articles</SelectItem>
-                  <SelectItem value="Announcements">Announcements</SelectItem>
-                  <SelectItem value="Tech Updates">Tech Updates</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="image">Featured Image URL</Label>
-              <Input
-                id="image"
-                value={newPost.image}
-                onChange={(e) =>
-                  setNewPost({ ...newPost, image: e.target.value })
-                }
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="tags">Tags (comma-separated)</Label>
-              <Input
-                id="tags"
-                placeholder="e.g., Technology, Education, AI"
-                onChange={(e) =>
-                  setNewPost({
-                    ...newPost,
-                    tags: e.target.value.split(",").map((t) => t.trim()),
-                  })
-                }
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setDialogOpen(false)}
-              className="w-full sm:w-auto"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreatePost}
-              className="w-full sm:w-auto"
-            >
-              Publish Post
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-
-    {/* Stats */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
-          <Newspaper className="size-4 text-gray-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-xl sm:text-2xl font-bold">{posts.length}</div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Articles</CardTitle>
-          <Newspaper className="size-4 text-gray-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-xl sm:text-2xl font-bold">
-            {posts.filter((p) => p.category === "Articles").length}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Announcements</CardTitle>
-          <Newspaper className="size-4 text-gray-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-xl sm:text-2xl font-bold">
-            {posts.filter((p) => p.category === "Announcements").length}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Tech Updates</CardTitle>
-          <Newspaper className="size-4 text-gray-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-xl sm:text-2xl font-bold">
-            {posts.filter((p) => p.category === "Tech Updates").length}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-
-    {/* Posts List */}
-    <Card>
-      <CardHeader>
-        <CardTitle>All Blog Posts</CardTitle>
-        <CardDescription>Manage your published content</CardDescription>
-      </CardHeader>
-
-      <CardContent>
-        <div className="space-y-4">
-          {posts.map((post) => (
-            <div
-              key={post.id}
-              className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg"
-            >
-              <img
-                src={post.image}
-                alt={post.title}
-                className="w-full sm:w-24 h-48 sm:h-24 rounded object-cover shrink-0"
-              />
-
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold mb-1 text-base sm:text-lg">
-                      {post.title}
-                    </h3>
-
-                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                      {post.excerpt}
-                    </p>
-
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant="secondary">{post.category}</Badge>
-                      <span className="text-xs text-gray-500">
-                        {post.author}
-                      </span>
-                      <span className="text-xs text-gray-500 hidden sm:inline">
-                        •
-                      </span>
-                      <span className="text-xs text-gray-500">{post.date}</span>
-
-                      {post.tags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="outline"
-                          className="text-xs"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 sm:flex-col md:flex-row shrink-0">
-                    <Button variant="ghost" size="sm" className="flex-1 sm:flex-none">
-                      <Edit className="size-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(post.id)}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <Trash2 className="size-4 text-red-600" />
-                    </Button>
-                  </div>
+      {(posts || []).length === 0 ? (
+        <Card><CardContent className="pt-6 text-center py-12"><Newspaper className="size-16 mx-auto text-gray-400 mb-4" /><h3 className="text-lg font-semibold mb-2">No Blog Posts Yet</h3></CardContent></Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {(posts || []).map((post) => (
+            <Card key={post.id} className="flex flex-col">
+              {post.image && <img src={post.image} alt={post.title} className="w-full h-40 object-cover rounded-t-xl" />}
+              <CardHeader>
+                <Badge variant="secondary" className="w-fit mb-2">{post.category}</Badge>
+                <CardTitle className="text-lg line-clamp-2">{post.title}</CardTitle>
+                <CardDescription className="line-clamp-2">{post.excerpt}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1">
+                <div className="flex flex-wrap gap-2 mb-3">{post.tags.map(t => <Badge key={t} variant="outline" className="text-xs">{t}</Badge>)}</div>
+                <div className="flex items-center gap-4 text-xs text-gray-500">
+                  <span className="flex items-center gap-1"><User className="size-3" />{post.author}</span>
+                  <span className="flex items-center gap-1"><Calendar className="size-3" />{new Date(post.date).toLocaleDateString()}</span>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
-      </CardContent>
-    </Card>
-  </div>
-);
+      )}
+    </div>
+  );
 }

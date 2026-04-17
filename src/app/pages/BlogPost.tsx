@@ -1,10 +1,27 @@
 import { useParams, Link } from "react-router";
-import { ArrowLeft, Calendar, User } from "lucide-react";
-import { blogPosts } from "../data/mockData";
+import { ArrowLeft, Calendar, User, Loader2 } from "lucide-react";
+import { useApi } from "../hooks/useApi";
+import { api } from "../utils/api";
+import { ErrorState } from "../components/ErrorState";
+import type { BlogPost as BlogPostType } from "../types";
 
 export default function BlogPost() {
   const { id } = useParams();
-  const post = blogPosts.find((p) => p.id === parseInt(id || "0"));
+  const { data: posts, isLoading, error, retry } = useApi<BlogPostType[]>(() => api.blog.list());
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <ErrorState message={error} onRetry={retry} />;
+  }
+
+  const post = (posts || []).find((p) => p.id === id);
 
   if (!post) {
     return (
@@ -25,9 +42,13 @@ export default function BlogPost() {
           Back to Blog
         </Link>
 
-        <div className="aspect-video bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl mb-8"></div>
+        {post.image ? (
+          <img src={post.image} alt={post.title} className="w-full aspect-video object-cover rounded-2xl mb-8" />
+        ) : (
+          <div className="aspect-video bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl mb-8" />
+        )}
 
-        <div className="flex items-center gap-4 mb-6 text-sm text-gray-600">
+        <div className="flex flex-wrap items-center gap-4 mb-6 text-sm text-gray-600">
           <span className="flex items-center gap-1">
             <Calendar className="w-4 h-4" />
             {new Date(post.date).toLocaleDateString()}
@@ -41,16 +62,11 @@ export default function BlogPost() {
           </span>
         </div>
 
-        <h1 className="text-4xl font-bold text-gray-900 mb-6">{post.title}</h1>
-        
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">{post.title}</h1>
+
         <div className="prose prose-lg max-w-none">
           <p className="text-xl text-gray-600 mb-6">{post.excerpt}</p>
-          <p className="text-gray-700 leading-relaxed">{post.content}</p>
-          <p className="text-gray-700 leading-relaxed mt-4">
-            This article explores the latest developments and trends in {post.category.toLowerCase()}. 
-            Our expert team at Mega-Tech Solutions continues to stay at the forefront of technology 
-            education, ensuring our students learn the most relevant and in-demand skills.
-          </p>
+          <p className="text-gray-700 leading-relaxed whitespace-pre-line">{post.content}</p>
         </div>
 
         <div className="mt-8 pt-8 border-t">

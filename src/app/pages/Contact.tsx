@@ -24,7 +24,6 @@ export default function Contact() {
 
   return (
     <div>
-      {/* Hero */}
       <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
@@ -37,7 +36,6 @@ export default function Contact() {
       <section className="py-12">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Contact Info */}
             <div className="space-y-6">
               <Card>
                 <CardContent className="pt-6">
@@ -115,7 +113,6 @@ export default function Contact() {
               </Card>
             </div>
 
-            {/* Contact Form */}
             <div className="md:col-span-2">
               <Card>
                 <CardHeader>
@@ -192,7 +189,6 @@ export default function Contact() {
                 </CardContent>
               </Card>
 
-              {/* Map */}
               <Card className="mt-6">
                 <CardContent className="p-0">
                   <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">

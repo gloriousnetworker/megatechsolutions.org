@@ -1,15 +1,24 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft, Loader2 } from "lucide-react";
+import { api } from "../utils/api";
 import logo from "../../assets/5617957f48c55254a851db007d0091c8ad212892.png";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setIsLoading(true);
+    try {
+      await api.auth.forgotPassword({ email });
+    } catch {
+    } finally {
+      setIsLoading(false);
+      setSubmitted(true);
+    }
   };
 
   return (
@@ -44,17 +53,19 @@ export default function ForgotPassword() {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={isLoading}
+                className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
+                {isLoading ? <Loader2 className="size-4 animate-spin" /> : null}
                 Send Reset Link
               </button>
             </form>
           ) : (
             <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-              <div className="text-green-600 mb-2">✓</div>
+              <div className="text-green-600 text-2xl mb-2">&#10003;</div>
               <h3 className="font-semibold text-gray-900 mb-2">Check your email</h3>
               <p className="text-gray-700 text-sm">
-                We've sent a password reset link to <strong>{email}</strong>
+                If an account exists for <strong>{email}</strong>, we've sent a password reset link.
               </p>
             </div>
           )}

@@ -101,7 +101,6 @@ export default function FAQ() {
 
   return (
     <div>
-      {/* Hero */}
       <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Frequently Asked Questions</h1>
@@ -111,7 +110,6 @@ export default function FAQ() {
         </div>
       </section>
 
-      {/* FAQs */}
       <section className="py-12">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="space-y-8">
@@ -136,7 +134,6 @@ export default function FAQ() {
             ))}
           </div>
 
-          {/* Still have questions */}
           <Card className="mt-8 bg-blue-50 border-blue-200">
             <CardContent className="pt-6 text-center">
               <h3 className="text-xl font-semibold mb-2">Still have questions?</h3>

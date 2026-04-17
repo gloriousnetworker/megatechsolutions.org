@@ -1,68 +1,78 @@
-import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Users, BookOpen, DollarSign, TrendingUp } from 'lucide-react';
-import { mockCourses, mockEnrollments, mockPayments } from '../../data/mockData';
+import { Skeleton } from '../../components/ui/skeleton';
+import { useApi } from '../../hooks/useApi';
+import { api } from '../../utils/api';
+import { ErrorState } from '../../components/ErrorState';
+import { Users, BookOpen, CreditCard, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router';
+import type { DashboardStats } from '../../types';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
-  
-  // Calculate stats from mock data
-  const stats = {
-    totalStudents: 1247, // Mock value
-    totalCourses: mockCourses.length,
-    totalRevenue: mockPayments.reduce((sum, p) => sum + p.amount, 0) / 100,
-    totalEnrollments: mockEnrollments.length,
-  };
+  const { data: stats, isLoading, error, retry } = useApi<DashboardStats>(() => api.stats.dashboard());
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) return <ErrorState message={error} onRetry={retry} />;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-gray-600 mt-2">Welcome back, {user?.name}! Here's your platform overview</p>
+        <h1 className="text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
+        <p className="text-gray-600 mt-2">Welcome back, {user?.name?.split(' ')[0]}! Here's your platform overview</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Students</CardTitle>
             <Users className="size-4 text-gray-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalStudents}</div>
-            <p className="text-xs text-gray-600 mt-1">+12% from last month</p>
+            <div className="text-2xl font-bold">{stats?.totalStudents || 0}</div>
+            <p className="text-xs text-gray-600 mt-1">Registered students</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Courses</CardTitle>
             <BookOpen className="size-4 text-gray-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCourses}</div>
+            <div className="text-2xl font-bold">{stats?.totalCourses || 0}</div>
             <p className="text-xs text-gray-600 mt-1">Active courses</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="size-4 text-gray-600" />
+            <CreditCard className="size-4 text-gray-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₦{stats.totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-gray-600 mt-1">+8% from last month</p>
+            <div className="text-2xl font-bold">&#8358;{(stats?.totalRevenue || 0).toLocaleString()}</div>
+            <p className="text-xs text-gray-600 mt-1">Confirmed payments</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Enrollments</CardTitle>
             <TrendingUp className="size-4 text-gray-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEnrollments}</div>
+            <div className="text-2xl font-bold">{stats?.totalEnrollments || 0}</div>
             <p className="text-xs text-gray-600 mt-1">Total enrollments</p>
           </CardContent>
         </Card>
@@ -71,39 +81,26 @@ export default function AdminDashboard() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest platform activities</CardDescription>
+            <CardTitle>Recent Enrollments</CardTitle>
+            <CardDescription>Latest student enrollments</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-4 pb-4 border-b">
-                <div className="p-2 bg-blue-50 rounded">
-                  <Users className="size-4 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium">New student registration</p>
-                  <p className="text-sm text-gray-600">Jane Smith joined - 2 hours ago</p>
-                </div>
+            {(stats?.recentEnrollments || []).length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">No recent enrollments</p>
+            ) : (
+              <div className="space-y-4">
+                {(stats?.recentEnrollments || []).map((e) => (
+                  <div key={e.id} className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0">
+                    <div className="p-2 bg-blue-50 rounded"><Users className="size-4 text-blue-600" /></div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{e.studentName}</p>
+                      <p className="text-xs text-gray-600 truncate">{e.courseName}</p>
+                      <p className="text-xs text-gray-400">{new Date(e.enrolledDate).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-start gap-4 pb-4 border-b">
-                <div className="p-2 bg-green-50 rounded">
-                  <BookOpen className="size-4 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium">New course published</p>
-                  <p className="text-sm text-gray-600">Advanced React Patterns - 5 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="p-2 bg-purple-50 rounded">
-                  <DollarSign className="size-4 text-purple-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium">Payment received</p>
-                  <p className="text-sm text-gray-600">₦49,999 - Full Stack Web Development - Yesterday</p>
-                </div>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -113,18 +110,18 @@ export default function AdminDashboard() {
             <CardDescription>Common administrative tasks</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2">
-            <a href="/admin/courses" className="p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+            <Link to="/admin/courses" className="p-3 border rounded-lg hover:bg-gray-50 transition-colors block">
               <div className="font-medium">Manage Courses</div>
               <div className="text-sm text-gray-600">Add, edit, or remove courses</div>
-            </a>
-            <a href="/admin/students" className="p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+            </Link>
+            <Link to="/admin/students" className="p-3 border rounded-lg hover:bg-gray-50 transition-colors block">
               <div className="font-medium">Manage Students</div>
               <div className="text-sm text-gray-600">View and manage student accounts</div>
-            </a>
-            <a href="/admin/certificates" className="p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+            </Link>
+            <Link to="/admin/certificates" className="p-3 border rounded-lg hover:bg-gray-50 transition-colors block">
               <div className="font-medium">Issue Certificates</div>
               <div className="text-sm text-gray-600">Generate completion certificates</div>
-            </a>
+            </Link>
           </CardContent>
         </Card>
       </div>

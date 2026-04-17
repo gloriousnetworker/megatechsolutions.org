@@ -15,7 +15,8 @@ import VerifyCertificate from "./pages/VerifyCertificate";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
-// Student Portal
+
+
 import StudentDashboard from "./pages/student/Dashboard";
 import StudentCourses from "./pages/student/Courses";
 import StudentAssignments from "./pages/student/Assignments";
@@ -23,13 +24,15 @@ import StudentCertificates from "./pages/student/Certificates";
 import StudentPayments from "./pages/student/Payments";
 import StudentProfile from "./pages/student/Profile";
 
-// Staff Portal
+
+
 import StaffDashboard from "./pages/staff/Dashboard";
 import StaffCourseManagement from "./pages/staff/CourseManagement";
 import StaffStudentManagement from "./pages/staff/StudentManagement";
 import StaffProfile from "./pages/staff/Profile";
 
-// Admin Panel
+
+
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminCourses from "./pages/admin/Courses";
 import AdminStudents from "./pages/admin/Students";
@@ -42,7 +45,8 @@ import AdminSettings from "./pages/admin/Settings";
 
 import NotFound from "./pages/NotFound";
 
-// Dashboard Layout Wrappers
+
+
 function StudentLayout() {
   return <DashboardLayout requiredRole="student" />;
 }
