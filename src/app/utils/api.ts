@@ -17,26 +17,58 @@ export class AuthError extends ApiError {
   }
 }
 
+let accessToken: string | null = null
+let refreshTokenValue: string | null = null
 let refreshPromise: Promise<void> | null = null
 
+export function setTokens(access: string | null, refresh: string | null) {
+  accessToken = access
+  refreshTokenValue = refresh
+}
+
+export function clearTokens() {
+  accessToken = null
+  refreshTokenValue = null
+}
+
 async function refreshTokens(): Promise<void> {
+  if (!refreshTokenValue) throw new AuthError()
+
   const res = await fetch(`${API_BASE}/auth/refresh`, {
     method: 'POST',
     credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken: refreshTokenValue }),
   })
-  if (!res.ok) throw new AuthError()
+
+  if (!res.ok) {
+    clearTokens()
+    throw new AuthError()
+  }
+
+  const data = await res.json()
+  if (data.data?.accessToken) {
+    accessToken = data.data.accessToken
+    refreshTokenValue = data.data.refreshToken
+  }
 }
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE}${path}`
 
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  }
+
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`
+  }
+
   const res = await fetch(url, {
     ...options,
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
   })
 
   if (res.status === 401) {
@@ -50,13 +82,18 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
       throw new AuthError()
     }
 
+    const retryHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string>),
+    }
+    if (accessToken) {
+      retryHeaders['Authorization'] = `Bearer ${accessToken}`
+    }
+
     const retryRes = await fetch(url, {
       ...options,
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers: retryHeaders,
     })
 
     if (!retryRes.ok) {
@@ -106,7 +143,7 @@ export const api = {
     register: (data: { name: string; email: string; password: string; phone?: string }) => post<any>('/auth/register', data),
     logout: () => post<any>('/auth/logout'),
     me: () => get<any>('/auth/me'),
-    refresh: () => post<any>('/auth/refresh'),
+    refresh: () => post<any>('/auth/refresh', { refreshToken: refreshTokenValue }),
     forgotPassword: (data: { email: string }) => post<any>('/auth/forgot-password', data),
     resetPassword: (data: { token: string; password: string }) => post<any>('/auth/reset-password', data),
     changePassword: (data: { currentPassword: string; newPassword: string }) => post<any>('/auth/change-password', data),

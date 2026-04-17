@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, LoginResult } from '../types';
-import { api, AuthError } from '../utils/api';
+import { api, setTokens, clearTokens } from '../utils/api';
 
 interface AuthContextType {
   user: User | null;
@@ -21,7 +21,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     api.auth.me()
       .then((data) => setUser(data.user))
-      .catch(() => setUser(null))
+      .catch(() => {
+        setUser(null);
+        clearTokens();
+      })
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -32,17 +35,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { requiresTwoFactor: true };
     }
 
+    if (data.accessToken) {
+      setTokens(data.accessToken, data.refreshToken);
+    }
     setUser(data.user);
     return { user: data.user };
   }, []);
 
   const login2fa = useCallback(async (email: string, password: string, code: string) => {
     const data = await api.auth.login2fa({ email, password, twoFactorCode: code });
+    if (data.accessToken) {
+      setTokens(data.accessToken, data.refreshToken);
+    }
     setUser(data.user);
   }, []);
 
   const register = useCallback(async (data: { name: string; email: string; password: string; phone?: string }) => {
     const result = await api.auth.register(data);
+    if (result.accessToken) {
+      setTokens(result.accessToken, result.refreshToken);
+    }
     setUser(result.user);
   }, []);
 
@@ -52,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
     } finally {
       setUser(null);
+      clearTokens();
     }
   }, []);
 
