@@ -5,7 +5,10 @@ import { Skeleton } from '../../components/ui/skeleton';
 import { useApi } from '../../hooks/useApi';
 import { api } from '../../utils/api';
 import { ErrorState } from '../../components/ErrorState';
-import { CreditCard, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../../components/ui/alert-dialog';
+import { CreditCard, CheckCircle, Clock, XCircle, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import type { Payment } from '../../types';
 
 export default function AdminPayments() {
@@ -47,7 +50,7 @@ export default function AdminPayments() {
           <CardHeader><CardTitle>All Transactions</CardTitle></CardHeader>
           <CardContent className="overflow-x-auto">
             <Table className="min-w-[700px]">
-              <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Student</TableHead><TableHead>Course</TableHead><TableHead>Method</TableHead><TableHead>Amount</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Student</TableHead><TableHead>Course</TableHead><TableHead>Method</TableHead><TableHead>Amount</TableHead><TableHead>Status</TableHead><TableHead className="w-20">Actions</TableHead></TableRow></TableHeader>
               <TableBody>
                 {allPayments.map((payment) => (
                   <TableRow key={payment.id}>
@@ -57,6 +60,18 @@ export default function AdminPayments() {
                     <TableCell className="capitalize">{payment.method}</TableCell>
                     <TableCell className="font-medium whitespace-nowrap">&#8358;{payment.amount.toLocaleString()}</TableCell>
                     <TableCell>{getStatusBadge(payment.status)}</TableCell>
+                    <TableCell>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild><Button variant="ghost" size="sm"><Trash2 className="size-4 text-red-500" /></Button></AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader><AlertDialogTitle>Delete Payment</AlertDialogTitle><AlertDialogDescription>Delete this payment record? This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={async () => { try { await api.payments.delete(payment.id); toast.success('Payment deleted'); retry(); } catch (err: any) { toast.error(err.message || 'Failed to delete'); } }}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

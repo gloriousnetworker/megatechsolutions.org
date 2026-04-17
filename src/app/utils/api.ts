@@ -165,11 +165,14 @@ export const api = {
   students: {
     list: () => get<any[]>('/students'),
     update: (id: string, data: any) => put<any>(`/students/${id}`, data),
+    delete: (id: string) => del<any>(`/students/${id}`),
   },
   staff: {
     list: () => get<any[]>('/staff'),
     listPublic: () => get<any[]>('/staff/public'),
     create: (data: any) => post<any>('/staff', data),
+    update: (id: string, data: any) => put<any>(`/staff/${id}`, data),
+    delete: (id: string) => del<any>(`/staff/${id}`),
   },
   payments: {
     initialize: (data: { courseId: string; callbackUrl?: string }) => post<any>('/payments/initialize', data),
@@ -177,6 +180,8 @@ export const api = {
     create: (data: { courseId: string; amount: number; method: string }) => post<any>('/payments', data),
     my: () => get<any[]>('/payments/my'),
     all: () => get<any[]>('/payments'),
+    updateStatus: (id: string, status: string) => put<any>(`/payments/${id}`, { status }),
+    delete: (id: string) => del<any>(`/payments/${id}`),
   },
   assignments: {
     submit: (data: any) => post<any>('/assignments', data),
@@ -186,10 +191,13 @@ export const api = {
     issue: (data: { studentId: string; courseId: string }) => post<any>('/certificates', data),
     verify: (id: string) => get<any>(`/certificates/${id}/verify`),
     my: () => get<any[]>('/certificates/my'),
+    delete: (id: string) => del<any>(`/certificates/${id}`),
   },
   blog: {
     list: () => get<any[]>('/blog'),
     create: (data: any) => post<any>('/blog', data),
+    update: (id: string, data: any) => put<any>(`/blog/${id}`, data),
+    delete: (id: string) => del<any>(`/blog/${id}`),
   },
   gallery: {
     list: () => get<any[]>('/gallery'),

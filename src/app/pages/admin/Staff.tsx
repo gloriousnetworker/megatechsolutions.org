@@ -10,8 +10,9 @@ import { Skeleton } from '../../components/ui/skeleton';
 import { useApi } from '../../hooks/useApi';
 import { api } from '../../utils/api';
 import { ErrorState } from '../../components/ErrorState';
-import { Plus, Users, Loader2 } from 'lucide-react';
+import { Plus, Users, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../../components/ui/alert-dialog';
 
 export default function AdminStaff() {
   const { data: staff, isLoading, error, retry } = useApi<any[]>(() => api.staff.list());
@@ -66,8 +67,8 @@ export default function AdminStaff() {
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><Users className="size-5" />{(staff || []).length} Staff Members</CardTitle></CardHeader>
         <CardContent className="overflow-x-auto">
-          <Table className="min-w-[600px]">
-            <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Position</TableHead><TableHead>Joined</TableHead></TableRow></TableHeader>
+          <Table className="min-w-[700px]">
+            <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Position</TableHead><TableHead>Joined</TableHead><TableHead className="w-20">Actions</TableHead></TableRow></TableHeader>
             <TableBody>
               {(staff || []).map((member: any) => (
                 <TableRow key={member.id}>
@@ -75,6 +76,18 @@ export default function AdminStaff() {
                   <TableCell className="whitespace-nowrap">{member.email}</TableCell>
                   <TableCell className="whitespace-nowrap">{member.position || 'N/A'}</TableCell>
                   <TableCell className="whitespace-nowrap">{member.createdAt ? new Date(member.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
+                  <TableCell>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild><Button variant="ghost" size="sm"><Trash2 className="size-4 text-red-500" /></Button></AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader><AlertDialogTitle>Delete Staff Member</AlertDialogTitle><AlertDialogDescription>Are you sure you want to delete {member.name}? This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={async () => { try { await api.staff.delete(member.id); toast.success('Staff member deleted'); retry(); } catch (err: any) { toast.error(err.message || 'Failed to delete'); } }}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

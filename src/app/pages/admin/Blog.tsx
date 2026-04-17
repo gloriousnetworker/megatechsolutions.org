@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useApi } from '../../hooks/useApi';
 import { api } from '../../utils/api';
 import { ErrorState } from '../../components/ErrorState';
-import { Newspaper, Plus, Loader2, Calendar, User } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../../components/ui/alert-dialog';
+import { Newspaper, Plus, Loader2, Calendar, User, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { BlogPost } from '../../types';
 
@@ -81,9 +82,21 @@ export default function AdminBlog() {
               </CardHeader>
               <CardContent className="flex-1">
                 <div className="flex flex-wrap gap-2 mb-3">{post.tags.map(t => <Badge key={t} variant="outline" className="text-xs">{t}</Badge>)}</div>
-                <div className="flex items-center gap-4 text-xs text-gray-500">
-                  <span className="flex items-center gap-1"><User className="size-3" />{post.author}</span>
-                  <span className="flex items-center gap-1"><Calendar className="size-3" />{new Date(post.date).toLocaleDateString()}</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <span className="flex items-center gap-1"><User className="size-3" />{post.author}</span>
+                    <span className="flex items-center gap-1"><Calendar className="size-3" />{new Date(post.date).toLocaleDateString()}</span>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild><Button variant="ghost" size="sm"><Trash2 className="size-4 text-red-500" /></Button></AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader><AlertDialogTitle>Delete Post</AlertDialogTitle><AlertDialogDescription>Delete "{post.title}"? This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={async () => { try { await api.blog.delete(post.id); toast.success('Post deleted'); retry(); } catch (err: any) { toast.error(err.message || 'Failed to delete'); } }}>Delete</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </CardContent>
             </Card>

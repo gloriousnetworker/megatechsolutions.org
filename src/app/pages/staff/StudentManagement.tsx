@@ -1,17 +1,23 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { Badge } from '../../components/ui/badge';
 import { Skeleton } from '../../components/ui/skeleton';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../../components/ui/alert-dialog';
 import { useApi } from '../../hooks/useApi';
 import { api } from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
 import { ErrorState } from '../../components/ErrorState';
-import { Search } from 'lucide-react';
+import { toast } from 'sonner';
+import { Search, Trash2 } from 'lucide-react';
 
 export default function StaffStudentManagement() {
+  const { user } = useAuth();
   const { data: students, isLoading, error, retry } = useApi<any[]>(() => api.students.list());
+  const isAdmin = user?.role === 'admin';
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredStudents = (students || []).filter(student =>
@@ -57,6 +63,7 @@ export default function StaffStudentManagement() {
                     <TableHead>Phone</TableHead>
                     <TableHead>Enrollments</TableHead>
                     <TableHead>Joined</TableHead>
+                    {isAdmin && <TableHead className="w-20">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -75,6 +82,20 @@ export default function StaffStudentManagement() {
                       <TableCell className="whitespace-nowrap">{student.phone || 'N/A'}</TableCell>
                       <TableCell><Badge variant="secondary">{student.enrollments || 0}</Badge></TableCell>
                       <TableCell className="whitespace-nowrap">{student.createdAt ? new Date(student.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
+                      {isAdmin && (
+                        <TableCell>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild><Button variant="ghost" size="sm"><Trash2 className="size-4 text-red-500" /></Button></AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader><AlertDialogTitle>Delete Student</AlertDialogTitle><AlertDialogDescription>Delete {student.name}? All their enrollments, assignments, certificates, and payments will be removed.</AlertDialogDescription></AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={async () => { try { await api.students.delete(student.id); toast.success('Student deleted'); retry(); } catch (err: any) { toast.error(err.message || 'Failed to delete'); } }}>Delete</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
