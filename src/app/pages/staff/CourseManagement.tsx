@@ -12,7 +12,8 @@ import { useApi } from '../../hooks/useApi';
 import { api } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { ErrorState } from '../../components/ErrorState';
-import { BookOpen, Plus, Edit, Loader2, Star, Users } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../../components/ui/alert-dialog';
+import { BookOpen, Plus, Edit, Loader2, Star, Users, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Course } from '../../types';
 
@@ -126,9 +127,25 @@ export default function StaffCourseManagement() {
                     <CardTitle className="text-lg truncate">{course.title}</CardTitle>
                     <CardDescription className="text-sm line-clamp-2">{course.description}</CardDescription>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(course)}>
-                    <Edit className="size-4 mr-1" /> Edit
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => handleEdit(course)}>
+                      <Edit className="size-4 mr-1" /> Edit
+                    </Button>
+                    {user?.role === 'admin' && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm"><Trash2 className="size-4 text-red-500" /></Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader><AlertDialogTitle>Delete Course</AlertDialogTitle><AlertDialogDescription>Delete "{course.title}"? This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={async () => { try { await api.courses.delete(course.id); toast.success('Course deleted'); retry(); } catch (err: any) { toast.error(err.message || 'Failed to delete'); } }}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="flex-1">
