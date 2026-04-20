@@ -114,6 +114,15 @@ export interface Staff {
   };
 }
 
+export interface Partner {
+  id: string;
+  name: string;
+  logo: string;
+  website?: string | null;
+  order: number;
+  createdAt: string;
+}
+
 export interface Product {
   id: string;
   name: string;

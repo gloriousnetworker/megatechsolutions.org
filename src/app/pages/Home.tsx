@@ -7,11 +7,12 @@ import { api } from '../utils/api';
 import { CourseGridSkeleton } from '../components/skeletons/CourseCardSkeleton';
 import { BlogGridSkeleton } from '../components/skeletons/BlogCardSkeleton';
 import { ArrowRight, Award, Users, BookOpen, TrendingUp, Star, CheckCircle } from 'lucide-react';
-import type { Course, BlogPost } from '../types';
+import type { Course, BlogPost, Partner } from '../types';
 
 export default function Home() {
   const { data: courses } = useApi<Course[]>(() => api.courses.list());
   const { data: posts } = useApi<BlogPost[]>(() => api.blog.list());
+  const { data: partners } = useApi<Partner[]>(() => api.partners.list());
 
   const featuredCourses = (courses || []).filter(c => c.isFeatured).slice(0, 3);
   const latestPosts = (posts || []).slice(0, 3);
@@ -278,6 +279,33 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Partners Section */}
+      {partners && partners.length > 0 && (
+        <section className="py-12 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-10">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3">Our Partners</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                We collaborate with leading companies to provide real-world experience and career opportunities.
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center items-center gap-6 md:gap-10">
+              {partners.map((partner) => (
+                <div key={partner.id} className="bg-white rounded-xl shadow-sm p-4 flex items-center justify-center w-32 h-20 hover:shadow-md transition-shadow">
+                  {partner.website ? (
+                    <a href={partner.website} target="_blank" rel="noopener noreferrer">
+                      <img src={partner.logo} alt={partner.name} className="max-w-full max-h-12 object-contain grayscale hover:grayscale-0 transition-all" />
+                    </a>
+                  ) : (
+                    <img src={partner.logo} alt={partner.name} className="max-w-full max-h-12 object-contain grayscale hover:grayscale-0 transition-all" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="py-16 bg-gradient-to-br from-blue-600 to-blue-800 text-white">

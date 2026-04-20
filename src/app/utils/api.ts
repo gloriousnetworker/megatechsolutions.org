@@ -207,4 +207,10 @@ export const api = {
   stats: {
     dashboard: () => get<any>('/stats/dashboard'),
   },
+  partners: {
+    list: () => get<any[]>('/partners'),
+    create: (data: any) => post<any>('/partners', data),
+    update: (id: string, data: any) => put<any>(`/partners/${id}`, data),
+    delete: (id: string) => del<any>(`/partners/${id}`),
+  },
 }

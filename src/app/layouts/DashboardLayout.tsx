@@ -16,7 +16,8 @@ import {
   Image,
   Newspaper,
   Menu,
-  Loader2
+  Loader2,
+  Handshake
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -85,6 +86,7 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
       { icon: Image, label: 'Gallery', path: `${basePrefix}/gallery` },
       { icon: Newspaper, label: 'Blog', path: `${basePrefix}/blog` },
       { icon: Award, label: 'Certificates', path: `${basePrefix}/certificates` },
+      { icon: Handshake, label: 'Partners', path: `${basePrefix}/partners` },
       { icon: Settings, label: 'Settings', path: `${basePrefix}/settings` }
     ];
   };

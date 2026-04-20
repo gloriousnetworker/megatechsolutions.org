@@ -42,6 +42,7 @@ import AdminGallery from "./pages/admin/Gallery";
 import AdminBlog from "./pages/admin/Blog";
 import AdminCertificates from "./pages/admin/Certificates";
 import AdminSettings from "./pages/admin/Settings";
+import AdminPartners from "./pages/admin/Partners";
 
 import NotFound from "./pages/NotFound";
 
@@ -116,6 +117,7 @@ export const router = createBrowserRouter([
       { path: "gallery", Component: AdminGallery },
       { path: "blog", Component: AdminBlog },
       { path: "certificates", Component: AdminCertificates },
+      { path: "partners", Component: AdminPartners },
       { path: "settings", Component: AdminSettings },
     ],
   },
