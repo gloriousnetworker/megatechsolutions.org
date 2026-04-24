@@ -43,6 +43,8 @@ import AdminBlog from "./pages/admin/Blog";
 import AdminCertificates from "./pages/admin/Certificates";
 import AdminSettings from "./pages/admin/Settings";
 import AdminPartners from "./pages/admin/Partners";
+import AdminTestimonials from "./pages/admin/Testimonials";
+import AdminFeatures from "./pages/admin/Features";
 
 import NotFound from "./pages/NotFound";
 
@@ -118,6 +120,8 @@ export const router = createBrowserRouter([
       { path: "blog", Component: AdminBlog },
       { path: "certificates", Component: AdminCertificates },
       { path: "partners", Component: AdminPartners },
+      { path: "testimonials", Component: AdminTestimonials },
+      { path: "features", Component: AdminFeatures },
       { path: "settings", Component: AdminSettings },
     ],
   },

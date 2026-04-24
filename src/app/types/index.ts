@@ -123,6 +123,26 @@ export interface Partner {
   createdAt: string;
 }
 
+export interface Testimonial {
+  id: string;
+  name: string;
+  role: string;
+  quote: string;
+  image: string;
+  rating: number;
+  order: number;
+  createdAt: string;
+}
+
+export interface Feature {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  order: number;
+  createdAt: string;
+}
+
 export interface Product {
   id: string;
   name: string;

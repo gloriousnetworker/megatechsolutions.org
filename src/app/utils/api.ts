@@ -213,4 +213,16 @@ export const api = {
     update: (id: string, data: any) => put<any>(`/partners/${id}`, data),
     delete: (id: string) => del<any>(`/partners/${id}`),
   },
+  testimonials: {
+    list: () => get<any[]>('/testimonials'),
+    create: (data: any) => post<any>('/testimonials', data),
+    update: (id: string, data: any) => put<any>(`/testimonials/${id}`, data),
+    delete: (id: string) => del<any>(`/testimonials/${id}`),
+  },
+  features: {
+    list: () => get<any[]>('/features'),
+    create: (data: any) => post<any>('/features', data),
+    update: (id: string, data: any) => put<any>(`/features/${id}`, data),
+    delete: (id: string) => del<any>(`/features/${id}`),
+  },
 }
