@@ -112,28 +112,6 @@ export default function About() {
         </div>
       </section>
 
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-4">Our Partners</h2>
-          <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-            We work with leading companies to provide our students with real-world experience and job opportunities
-          </p>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center">
-            {[
-              'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&h=100&fit=crop',
-              'https://images.unsplash.com/photo-1572044162444-ad60f128bdea?w=200&h=100&fit=crop',
-              'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=200&h=100&fit=crop',
-              'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=200&h=100&fit=crop'
-            ].map((img, index) => (
-              <div key={index} className="bg-white p-6 rounded-lg shadow-sm flex items-center justify-center">
-                <img src={img} alt={`Partner ${index + 1}`} className="max-w-full h-12 object-contain grayscale hover:grayscale-0 transition-all" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">Our Core Values</h2>
@@ -265,68 +243,59 @@ export default function About() {
             </Card>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             <Card>
-              <CardContent className="pt-6">
-                <div className="text-center mb-4">
-                  <img
-                    src={managerImage}
-                    alt="Idris Muhammed Hafeez"
-                    className="size-32 rounded-full object-cover mx-auto mb-4 border-4 border-blue-100"
-                  />
-                  <h3 className="text-xl font-bold mb-1">Idris Muhammed Hafeez</h3>
-                  <p className="text-blue-600 font-medium mb-2">Manager</p>
-                  <p className="text-sm text-gray-600 mb-3">Computer Scientist</p>
-                </div>
-                
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p className="font-semibold text-gray-900">Specializations:</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Product Design</li>
-                    <li>Data Analytics</li>
-                    <li>Technology Strategy</li>
-                    <li>Ethics and Governance</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center mb-4">
-                  <img
-                    src={legalAdvisorImage}
-                    alt="Barrister Shaibu Yetunde Olubunmi"
-                    className="size-32 rounded-full object-cover mx-auto mb-4 border-4 border-blue-100"
-                  />
-                  <h3 className="text-xl font-bold mb-1">Barrister Shaibu Yetunde Olubunmi</h3>
-                  <p className="text-blue-600 font-medium mb-2">Legal Advisor</p>
-                </div>
-                
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p className="font-semibold text-gray-900">Qualifications:</p>
-                  <p>LL.B, B.L, ACIArb</p>
-                  <p className="font-semibold text-gray-900 mt-3">Role:</p>
-                  <p>Legal Advisor / Contract Review and Negotiator</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center mb-4">
-                  <div className="size-32 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
-                    <Users className="size-16 text-blue-600" />
+              <CardContent className="p-8">
+                <div className="grid md:grid-cols-3 gap-6 items-start">
+                  <div className="text-center">
+                    <img
+                      src={managerImage}
+                      alt="Idris Muhammed Hafeez"
+                      className="w-full max-w-xs rounded-lg object-cover mx-auto mb-4 shadow-lg"
+                    />
                   </div>
-                  <h3 className="text-xl font-bold mb-1">Engr. Ohie Abdulazeez Bilikisu</h3>
-                  <p className="text-blue-600 font-medium mb-2">Technical Adviser</p>
+                  <div className="md:col-span-2 space-y-4">
+                    <div>
+                      <h3 className="text-xl font-bold mb-1">Idris Muhammed Hafeez</h3>
+                      <p className="text-blue-600 font-semibold mb-2">Manager</p>
+                      <p className="text-sm text-gray-600">Computer Scientist</p>
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <p className="font-semibold text-gray-900 text-sm mb-2">Specializations:</p>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+                        <li>Product Design</li>
+                        <li>Data Analytics</li>
+                        <li>Technology Strategy</li>
+                        <li>Ethics and Governance</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p className="font-semibold text-gray-900">Qualifications:</p>
-                  <p>M.Eng, B.Eng, COREN, NSE, NEMSA</p>
-                  <p className="font-semibold text-gray-900 mt-3">Role:</p>
-                  <p>Technical Adviser and Business Development</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-8">
+                <div className="grid md:grid-cols-3 gap-6 items-start">
+                  <div className="text-center">
+                    <img
+                      src={legalAdvisorImage}
+                      alt="Barrister Shaibu Yetunde Olubunmi"
+                      className="w-full max-w-xs rounded-lg object-cover mx-auto mb-4 shadow-lg"
+                    />
+                  </div>
+                  <div className="md:col-span-2 space-y-4">
+                    <div>
+                      <h3 className="text-xl font-bold mb-1">Barrister Shaibu Yetunde Olubunmi</h3>
+                      <p className="text-blue-600 font-semibold mb-2">Legal Advisor</p>
+                    </div>
+
+                    <div className="border-t pt-4 space-y-2 text-sm text-gray-600">
+                      <p><span className="font-semibold text-gray-900">Qualifications:</span> LL.B, B.L, ACIArb</p>
+                      <p><span className="font-semibold text-gray-900">Role:</span> Legal Advisor / Contract Review and Negotiator</p>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
