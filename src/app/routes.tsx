@@ -45,6 +45,10 @@ import AdminSettings from "./pages/admin/Settings";
 import AdminPartners from "./pages/admin/Partners";
 import AdminTestimonials from "./pages/admin/Testimonials";
 import AdminFeatures from "./pages/admin/Features";
+import AdminBanners from "./pages/admin/Banners";
+import AdminHeroSlides from "./pages/admin/HeroSlides";
+import AdminSiteStats from "./pages/admin/SiteStats";
+import AdminVideoSections from "./pages/admin/VideoSections";
 
 import NotFound from "./pages/NotFound";
 
@@ -122,6 +126,10 @@ export const router = createBrowserRouter([
       { path: "partners", Component: AdminPartners },
       { path: "testimonials", Component: AdminTestimonials },
       { path: "features", Component: AdminFeatures },
+      { path: "banners", Component: AdminBanners },
+      { path: "hero-slides", Component: AdminHeroSlides },
+      { path: "site-stats", Component: AdminSiteStats },
+      { path: "video-sections", Component: AdminVideoSections },
       { path: "settings", Component: AdminSettings },
     ],
   },

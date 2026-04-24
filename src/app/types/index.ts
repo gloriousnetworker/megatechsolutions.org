@@ -87,6 +87,7 @@ export interface BlogPost {
   category: string;
   image: string;
   tags: string[];
+  isFeatured?: boolean;
 }
 
 export interface GalleryItem {
@@ -140,6 +141,53 @@ export interface Feature {
   description: string;
   icon: string;
   order: number;
+  createdAt: string;
+}
+
+export interface Banner {
+  id: string;
+  text: string;
+  image?: string | null;
+  bgColor: string;
+  textColor: string;
+  link?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  active: boolean;
+  order: number;
+  createdAt: string;
+}
+
+export interface HeroSlide {
+  id: string;
+  title: string;
+  subtitle: string;
+  buttonText: string;
+  buttonLink: string;
+  bgImage?: string | null;
+  bgColor: string;
+  textColor: string;
+  duration: number;
+  order: number;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface SiteStat {
+  id: string;
+  value: number;
+  suffix: string;
+  label: string;
+  order: number;
+  createdAt: string;
+}
+
+export interface VideoSectionItem {
+  id: string;
+  youtubeUrl: string;
+  title: string;
+  description: string;
+  active: boolean;
   createdAt: string;
 }
 

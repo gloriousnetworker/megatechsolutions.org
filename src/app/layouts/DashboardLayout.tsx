@@ -19,7 +19,11 @@ import {
   Loader2,
   Handshake,
   MessageSquareQuote,
-  Sparkles
+  Sparkles,
+  Megaphone,
+  Layers,
+  BarChart3,
+  Video
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -91,6 +95,10 @@ export function DashboardLayout({ requiredRole }: DashboardLayoutProps) {
       { icon: Handshake, label: 'Partners', path: `${basePrefix}/partners` },
       { icon: MessageSquareQuote, label: 'Testimonials', path: `${basePrefix}/testimonials` },
       { icon: Sparkles, label: 'Features', path: `${basePrefix}/features` },
+      { icon: Megaphone, label: 'Banners', path: `${basePrefix}/banners` },
+      { icon: Layers, label: 'Hero Slides', path: `${basePrefix}/hero-slides` },
+      { icon: BarChart3, label: 'Site Stats', path: `${basePrefix}/site-stats` },
+      { icon: Video, label: 'Videos', path: `${basePrefix}/video-sections` },
       { icon: Settings, label: 'Settings', path: `${basePrefix}/settings` }
     ];
   };

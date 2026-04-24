@@ -127,7 +127,23 @@ export default function StaffCourseManagement() {
                     <CardTitle className="text-lg truncate">{course.title}</CardTitle>
                     <CardDescription className="text-sm line-clamp-2">{course.description}</CardDescription>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
+                    {user?.role === 'admin' && (
+                      <Button
+                        variant={course.isFeatured ? "default" : "outline"}
+                        size="sm"
+                        className={course.isFeatured ? "bg-yellow-500 hover:bg-yellow-600 text-white" : ""}
+                        onClick={async () => {
+                          try {
+                            await api.courses.update(course.id, { isFeatured: !course.isFeatured });
+                            toast.success(course.isFeatured ? 'Removed from featured' : 'Set as featured');
+                            retry();
+                          } catch (err: any) { toast.error(err.message || 'Failed to update'); }
+                        }}
+                      >
+                        <Star className={`size-4 ${course.isFeatured ? 'fill-white' : ''}`} />
+                      </Button>
+                    )}
                     <Button variant="outline" size="sm" onClick={() => handleEdit(course)}>
                       <Edit className="size-4 mr-1" /> Edit
                     </Button>

@@ -225,4 +225,30 @@ export const api = {
     update: (id: string, data: any) => put<any>(`/features/${id}`, data),
     delete: (id: string) => del<any>(`/features/${id}`),
   },
+  banners: {
+    list: () => get<any[]>('/banners'),
+    create: (data: any) => post<any>('/banners', data),
+    update: (id: string, data: any) => put<any>(`/banners/${id}`, data),
+    delete: (id: string) => del<any>(`/banners/${id}`),
+  },
+  heroSlides: {
+    list: () => get<any[]>('/hero-slides'),
+    listAll: () => get<any[]>('/hero-slides/all'),
+    create: (data: any) => post<any>('/hero-slides', data),
+    update: (id: string, data: any) => put<any>(`/hero-slides/${id}`, data),
+    delete: (id: string) => del<any>(`/hero-slides/${id}`),
+  },
+  siteStats: {
+    list: () => get<any[]>('/site-stats'),
+    create: (data: any) => post<any>('/site-stats', data),
+    update: (id: string, data: any) => put<any>(`/site-stats/${id}`, data),
+    delete: (id: string) => del<any>(`/site-stats/${id}`),
+  },
+  videoSections: {
+    list: () => get<any[]>('/video-sections'),
+    listAll: () => get<any[]>('/video-sections/all'),
+    create: (data: any) => post<any>('/video-sections', data),
+    update: (id: string, data: any) => put<any>(`/video-sections/${id}`, data),
+    delete: (id: string) => del<any>(`/video-sections/${id}`),
+  },
 }
